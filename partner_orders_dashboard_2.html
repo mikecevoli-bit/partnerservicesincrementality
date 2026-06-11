@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Partner Orders — Incremental Analysis</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f3; color: #1a1a18; padding: 2rem; font-size: 14px; line-height: 1.6; }
+  .page-header { margin-bottom: 1.75rem; max-width: 900px; margin-left: auto; margin-right: auto; }
+  .page-header h1 { font-size: 20px; font-weight: 500; margin-bottom: 4px; }
+  .page-header p { font-size: 13px; color: #666; }
+  .card { background: #fff; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 12px; padding: 1.5rem; max-width: 900px; margin: 0 auto; }
+  .pr { display: flex; gap: 8px; margin-bottom: 1.1rem; }
+  .pb { padding: 7px 20px; font-size: 13px; border: 0.5px solid #ccc; border-radius: 8px; background: #f5f5f3; color: #666; cursor: pointer; transition: all 0.15s; }
+  .pb:hover { background: #eee; }
+  .pb.on { font-weight: 500; color: #1a1a18; border-color: #999; background: #fff; }
+  .tr { display: flex; gap: 6px; margin-bottom: 1rem; flex-wrap: wrap; }
+  .tb { padding: 5px 13px; font-size: 12px; border: 0.5px solid #ccc; border-radius: 8px; background: #f5f5f3; color: #666; cursor: pointer; }
+  .tb:hover { background: #eee; }
+  .tb.on { background: #fff; color: #1a1a18; border-color: #999; font-weight: 500; }
+  .str { display: flex; gap: 6px; margin-bottom: 0.85rem; }
+  .stb { padding: 4px 11px; font-size: 11px; border: 0.5px solid #ccc; border-radius: 6px; background: #f5f5f3; color: #888; cursor: pointer; }
+  .stb.on { background: #fff; color: #1a1a18; border-color: #999; font-weight: 500; }
+  .sec { display: none; } .sec.vis { display: block; }
+  .mr { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 1rem; }
+  .mc { background: #f5f5f3; border-radius: 8px; padding: .8rem 1rem; flex: 1; min-width: 110px; }
+  .mlb { font-size: 11px; color: #888; margin-bottom: 3px; }
+  .mv { font-size: 19px; font-weight: 500; color: #1a1a18; }
+  .mv.g { color: #0F6E56; } .mv.w { color: #BA7517; }
+  .lg { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: .7rem; font-size: 12px; color: #666; align-items: center; }
+  .nt { font-size: 11px; color: #888; margin-top: .7rem; border-top: 0.5px solid rgba(0,0,0,0.1); padding-top: .7rem; line-height: 1.6; }
+  .callout { border-left: 3px solid #BA7517; background: #FFF8E8; border-radius: 0 6px 6px 0; padding: .75rem 1rem; margin-top: .75rem; font-size: 12px; color: #555; line-height: 1.6; }
+  .callout strong { color: #BA7517; display: block; margin-bottom: 3px; font-size: 11px; text-transform: uppercase; letter-spacing: .03em; }
+  .cv { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 1rem; }
+  .cd { flex: 1; min-width: 155px; border: 0.5px solid rgba(0,0,0,0.1); border-radius: 8px; padding: .8rem 1rem; }
+  .cdl { font-size: 11px; color: #888; margin-bottom: 6px; font-weight: 500; }
+  .cr { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; border-bottom: 0.5px solid rgba(0,0,0,0.08); }
+  .cr:last-child { border-bottom: none; }
+  .ck { color: #888; }
+  .panel { display: none; } .panel.vis { display: block; }
+  .footer { text-align: center; font-size: 11px; color: #aaa; margin-top: 1.5rem; max-width: 900px; margin-left: auto; margin-right: auto; }
+  @media (max-width: 600px) { body { padding: 1rem; } .pr, .tr { flex-wrap: wrap; } }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Partner Orders — Incremental Media Analysis</h1>
+  <p>Direct landing orders for Airport Transfer (Welcome Pickups) and Grocery (Instacart) · Jan 31–Jun 6, 2026 · Media launched Apr 26</p>
+</div>
+
+<div class="card">
+  <div class="pr">
+    <button class="pb on" id="ba" onclick="sw('airport')">Airport Transfer</button>
+    <button class="pb" id="bg" onclick="sw('grocery')">Grocery (Instacart)</button>
+  </div>
+  <div class="tr">
+    <button class="tb on" onclick="st('o')">Orders + Baseline</button>
+    <button class="tb" onclick="st('c')">Cost per Booking</button>
+    <button class="tb" onclick="st('m')">Baseline Comparison</button>
+  </div>
+
+  <div id="so" class="sec vis">
+    <div class="mr" id="mtr"></div>
+    <div class="str">
+      <button class="stb on" id="sv-spend" onclick="setView('spend')">Spend overlay</button>
+      <button class="stb" id="sv-imps" onclick="setView('imps')">Impressions overlay</button>
+    </div>
+    <div id="pv-spend" class="panel vis">
+      <div class="lg">
+        <span style="display:flex;align-items:center;gap:5px"><span id="la-s" style="width:18px;height:2.5px;display:inline-block;background:#185FA5"></span>Actual orders</span>
+        <span style="display:flex;align-items:center;gap:5px"><span id="lb-s" style="width:18px;height:0;display:inline-block;border-top:2px dashed rgba(24,95,165,0.6)"></span>Organic baseline</span>
+        <span style="display:flex;align-items:center;gap:5px"><span id="lf-s" style="width:10px;height:10px;border-radius:2px;display:inline-block;background:rgba(24,95,165,0.22)"></span>Incremental (est.)</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:18px;height:0;display:inline-block;border-top:2px dashed #E24B4A"></span>Spend (right)</span>
+      </div>
+      <div style="position:relative;width:100%;height:340px"><canvas id="oc-spend"></canvas></div>
+      <div class="nt" id="on-spend"></div>
+      <div class="callout" id="lag-callout" style="display:none">
+        <strong>Spend–order lag signal (Airport Transfer)</strong>
+        Spend pulled back on 5/23 ($54k) and 5/30 ($50k) — orders declined the following weeks with an approximate 1-week lag (5/30: 4,725 and 6/6: 4,571). When spend increased again to $71k in 6/6, orders stabilized. This lag pattern suggests media dependency: orders may have declined further without any spend floor. The incremental model credits orders above the baseline projection; the lag effect is additive evidence of media contribution during the pullback weeks.
+      </div>
+    </div>
+    <div id="pv-imps" class="panel">
+      <div class="lg">
+        <span style="display:flex;align-items:center;gap:5px"><span id="la-i" style="width:18px;height:2.5px;display:inline-block;background:#185FA5"></span>Actual orders</span>
+        <span style="display:flex;align-items:center;gap:5px"><span id="lb-i" style="width:18px;height:0;display:inline-block;border-top:2px dashed rgba(24,95,165,0.6)"></span>Organic baseline</span>
+        <span style="display:flex;align-items:center;gap:5px"><span id="lf-i" style="width:10px;height:10px;border-radius:2px;display:inline-block;background:rgba(24,95,165,0.22)"></span>Incremental (est.)</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:18px;height:0;display:inline-block;border-top:2px dashed #7B5EA7"></span>Impressions (right)</span>
+      </div>
+      <div style="position:relative;width:100%;height:340px"><canvas id="oc-imps"></canvas></div>
+      <div class="nt" id="on-imps"></div>
+      <div class="callout" id="lag-callout-imps" style="display:none">
+        <strong>Spend–order lag signal (Airport Transfer)</strong>
+        Impression volume declined on 5/23 (3.1M) and 5/30 (2.4M) — orders followed with an approximate 1-week lag. When impressions recovered to 2.8M in 6/6, orders stabilized. This pattern is consistent across both spend and impression volume, strengthening the case for media dependency during the pullback weeks.
+      </div>
+    </div>
+  </div>
+
+  <div id="sc" class="sec">
+    <div style="margin-bottom:.75rem;font-size:13px;color:#666">Spend divided by incremental orders above baseline. Post-launch weeks only.</div>
+    <div class="lg">
+      <span style="display:flex;align-items:center;gap:5px"><span id="lc1" style="width:10px;height:10px;border-radius:2px;display:inline-block;background:#185FA5"></span><span id="lc1l">Primary baseline</span></span>
+      <span style="display:flex;align-items:center;gap:5px"><span id="lc2" style="width:10px;height:10px;border-radius:2px;display:inline-block;background:rgba(24,95,165,0.25)"></span><span id="lc2l">Alt baseline</span></span>
+    </div>
+    <div style="position:relative;width:100%;height:300px"><canvas id="cc"></canvas></div>
+    <div class="nt" id="cn"></div>
+  </div>
+
+  <div id="sm" class="sec">
+    <div style="margin-bottom:.75rem;font-size:13px;color:#666">How baseline choice changes the incremental order estimate.</div>
+    <div style="position:relative;width:100%;height:270px"><canvas id="mc"></canvas></div>
+    <div class="cv" id="ccs"></div>
+  </div>
+</div>
+
+<!-- METHODOLOGY -->
+<div style="max-width:900px;margin:1.25rem auto 0">
+  <button onclick="toggleMeth()" id="methbtn" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-radius:12px;cursor:pointer;font-size:13px;font-weight:500;color:#1a1a18;text-align:left;">
+    <span>Methodology &amp; data sources</span>
+    <span id="methchev" style="font-size:16px;color:#888;transition:transform 0.2s">&#8964;</span>
+  </button>
+  <div id="methdoc" style="display:none;background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-top:none;border-radius:0 0 12px 12px;padding:1.5rem">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.5rem;margin-bottom:1.5rem">
+      <div>
+        <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.6rem">Order data</div>
+        <div style="font-size:13px;color:#444;line-height:1.7">Source: <code style="font-size:12px;background:#f5f5f3;padding:1px 5px;border-radius:4px">oyster_production_partnerorderitem_deserialized_v01$latest</code><br>Filtered to non-empty <code style="font-size:12px;background:#f5f5f3;padding:1px 5px;border-radius:4px">connected_order_items</code> only.<br><br>Products: Airport Transfer (ID 37), Grocery (ID 34).<br>Date range: Jan 31–Jun 6, 2026 (week-ending Saturday).</div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.6rem">Channel attribution</div>
+        <div style="font-size:13px;color:#444;line-height:1.7">Source: <code style="font-size:12px;background:#f5f5f3;padding:1px 5px;border-radius:4px">traffic.session__dim_growth_channel</code><br><br>Last-touch, click-based. DIRECT_LANDING channel only (~72% of all partner orders). Proxy for brand and upper-funnel media influence.</div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.6rem">Media data</div>
+        <div style="font-size:13px;color:#444;line-height:1.7">Weekly spend and impressions, week-ending Saturday (Sun–Sat).<br><br>Airport Transfer: Meta PrivateCars + DV360 CTV/YouTube + OLV.<br>Grocery: Meta Groceries + DV360 CTV/YouTube.<br>Reviews spend excluded.</div>
+      </div>
+    </div>
+    <div style="border-top:0.5px solid rgba(0,0,0,0.08);padding-top:1.25rem;margin-bottom:1.25rem">
+      <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.75rem">Organic baseline methodology</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.25rem">
+        <div style="background:#f0f7ff;border-radius:8px;padding:1rem">
+          <div style="font-size:12px;font-weight:500;color:#185FA5;margin-bottom:.4rem">Airport Transfer — Slope blend</div>
+          <div style="font-size:13px;color:#444;line-height:1.7">Hybrid baseline averaging the full Jan–Apr regression slope (~298/wk) with the Apr 4–25 slope (~108/wk), anchored at the last pre-launch data point (3,694 on 4/25). Resulting slope: ~203 orders/week.<br><br>Rationale: Airport Transfer growth materially decelerated in April (avg +112 orders/wk vs. +298 over the full period), suggesting the product was approaching a natural plateau. The blend honors the long-run trend while acknowledging the slowdown immediately before launch.</div>
+        </div>
+        <div style="background:#f0faf6;border-radius:8px;padding:1rem">
+          <div style="font-size:12px;font-weight:500;color:#1D9E75;margin-bottom:.4rem">Grocery — Flat Apr 11–25 average</div>
+          <div style="font-size:13px;color:#444;line-height:1.7">Flat average of Apr 11–Apr 25 (~1,968 orders/wk). Grocery had a sharp pullback in April after a March peak — holding flat reflects the stabilized run rate before launch rather than projecting a temporary dip forward as a continuing decline.</div>
+        </div>
+      </div>
+    </div>
+    <div style="border-top:0.5px solid rgba(0,0,0,0.08);padding-top:1.25rem">
+      <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.75rem">Key caveats</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.75rem">
+        <div style="font-size:12px;color:#666;line-height:1.6;padding:.75rem;background:#f5f5f3;border-radius:8px"><strong style="color:#444;display:block;margin-bottom:3px">Attribution model</strong>Last-touch click model undercounts brand/upper-funnel channels. DIRECT_LANDING is a proxy, not a direct measurement.</div>
+        <div style="font-size:12px;color:#666;line-height:1.6;padding:.75rem;background:#f5f5f3;border-radius:8px"><strong style="color:#444;display:block;margin-bottom:3px">Incrementality is estimated</strong>No holdout group was run. CPB figures are directional, not precise ROI measurements.</div>
+        <div style="font-size:12px;color:#666;line-height:1.6;padding:.75rem;background:#f5f5f3;border-radius:8px"><strong style="color:#444;display:block;margin-bottom:3px">Spend–order lag</strong>Airport Transfer shows a ~1-week lag between spend changes and order volume changes. The 5/30 and 6/6 order declines track the spend pullback on 5/23 and 5/30. This lag is evidence of media dependency beyond what the baseline incremental math captures.</div>
+        <div style="font-size:12px;color:#666;line-height:1.6;padding:.75rem;background:#f5f5f3;border-radius:8px"><strong style="color:#444;display:block;margin-bottom:3px">Week convention</strong>All data uses week-ending Saturday (Sun–Sat). Orders from dim_time ds_week_ending; media from weekly aggregated export.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RAW DATA -->
+<div style="max-width:900px;margin:.75rem auto 0">
+  <button onclick="toggleRaw()" id="rawbtn" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-radius:12px;cursor:pointer;font-size:13px;font-weight:500;color:#1a1a18;text-align:left;">
+    <span>Raw data</span>
+    <span id="rawchev" style="font-size:16px;color:#888;transition:transform 0.2s">&#8964;</span>
+  </button>
+  <div id="rawdoc" style="display:none;background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-top:none;border-radius:0 0 12px 12px;padding:1.5rem">
+    <p style="font-size:12px;color:#888;margin-bottom:1.25rem;line-height:1.6">Weekly data used in this analysis. Incremental = actual minus baseline, floored at zero, post-launch only. CPB = cost per incremental booking.</p>
+    <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.5rem">Airport Transfer (Welcome Pickups)</div>
+    <div style="overflow-x:auto;margin-bottom:1.75rem">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr style="border-bottom:1px solid rgba(0,0,0,0.1)">
+          <th style="text-align:left;padding:6px 10px;color:#888;font-weight:500;white-space:nowrap">Week ending</th>
+          <th style="text-align:right;padding:6px 10px;color:#888;font-weight:500">Actual orders</th>
+          <th style="text-align:right;padding:6px 10px;color:#888;font-weight:500">Baseline</th>
+          <th style="text-align:right;padding:6px 10px;color:#888;font-weight:500">Incremental</th>
+          <th style="text-align:right;padding:6px 10px;color:#888;font-weight:500">Spend</th>
+          <th style="text-align:right;padding:6px 10px;color:#888;font-weight:500">Impressions</th>
+          <th style="text-align:right;padding:6px 10px;color:#888;font-weight:500">CPB</th>
+        </tr></thead>
+        <tbody id="air-tbody"></tbody>
+      </table>
+    </div>
+    <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.5rem">Grocery (Instacart)</div>
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr style="border-bottom:1px solid rgba(0,0,0,0.1)">
+          <th style="text-align:left;padding:6px 10px;color:#888;font-weight:500;white-space:nowrap">Week ending</th>
+          <th style="text-align:right;padding:6px 10px;color:#888;font-weight:500">Actual orders</th>
+          <th style="text-align:right;padding:6px 10px;color:#888;font-weight:500">Baseline</th>
+          <th style="text-align:right;padding:6px 10px;color:#888;font-weight:500">Incremental</th>
+          <th style="text-align:right;padding:6px 10px;color:#888;font-weight:500">Spend</th>
+          <th style="text-align:right;padding:6px 10px;color:#888;font-weight:500">Impressions</th>
+          <th style="text-align:right;padding:6px 10px;color:#888;font-weight:500">CPB</th>
+        </tr></thead>
+        <tbody id="groc-tbody"></tbody>
+      </table>
+    </div>
+    <p style="font-size:11px;color:#aaa;margin-top:1rem;line-height:1.6">Media data: week-ending Saturday (Sun–Sat). Reviews spend excluded. Airport Transfer includes Meta PrivateCars, DV360 CTV/YouTube, and pre-launch OLV. Grocery includes Meta Groceries and DV360 CTV/YouTube.</p>
+  </div>
+</div>
+
+<div class="footer" style="margin-top:1.25rem">
+  Data through Jun 6, 2026 · DIRECT_LANDING channel · Last-touch session attribution · Week-ending Saturday · Incremental = orders above projected organic baseline, post-launch only
+</div>
+
+<script>
+const LL=['1/31','2/7','2/14','2/21','2/28','3/7','3/14','3/21','3/28','4/4','4/11','4/18','4/25','5/2','5/9','5/16','5/23','5/30','6/6'];
+const NN=LL.length, LI=13;
+
+const airAct=[444,562,802,926,1259,1568,1916,1815,2553,3358,3357,3432,3694,4343,4878,5105,5366,4725,4571];
+const grocAct=[361,408,866,1307,1440,1803,2407,2585,2608,2813,2121,1813,1971,1935,1973,2187,2672,2388,2564];
+
+const airSpd=[0,0,0,0,0,0,0,0,0,0,80,1039,0,19050,71899,78080,54085,50471,70577];
+const grocSpd=[0,0,0,0,0,0,0,0,0,0,0,0,0,18101,56655,80531,112603,74501,77383];
+const airImps=[0,0,0,0,0,0,0,0,0,0,3192,35083,0,2115163,3854696,4774054,3087094,2436044,2845685];
+const grocImps=[0,0,0,0,0,0,0,0,0,0,0,0,0,1198436,2650352,3207949,5709899,5521832,6899827];
+
+const grocFlat=Math.round((grocAct[10]+grocAct[11]+grocAct[12])/3);
+
+// Airport blend baseline: slope = avg(full slope, apr slope), anchored at week 12
+const airBlendSlope=203.0538, airBlendIntercept=1257.3538;
+const airBlendBL=LL.map((_,i)=>Math.max(0,Math.round(airBlendIntercept+airBlendSlope*i)));
+
+// Airport alt: full Jan-Apr regression
+function lr(y,f,t){
+  const xs=[],ys=[];
+  for(let i=f;i<=t;i++){xs.push(i);ys.push(y[i]);}
+  const xm=xs.reduce((a,b)=>a+b)/xs.length,ym=ys.reduce((a,b)=>a+b)/ys.length;
+  const num=xs.reduce((s,x,i)=>s+(x-xm)*(ys[i]-ym),0),den=xs.reduce((s,x)=>s+(x-xm)**2,0);
+  const sl=num/den,ic=ym-sl*xm;
+  return LL.map((_,i)=>Math.max(0,Math.round(ic+sl*i)));
+}
+const airFullBL=lr(airAct,0,12);
+const grocAprBL=lr(grocAct,10,12);
+
+const PD={
+  airport:{
+    act:airAct, spd:airSpd, imps:airImps,
+    hex:'#185FA5', rgb:[24,95,165],
+    pl:'Slope blend (Jan–Apr + Apr decel)', al:'Full Jan–Apr regression',
+    note:'Baseline = slope blend anchored at 4/25. Averages the full Jan–Apr growth slope (~298/wk) with the April deceleration slope (~108/wk) to produce ~203 orders/week. This reflects both the long-run growth trajectory and the material slowdown observed in April before media launched.',
+    showLag:true,
+    getBaseline:()=>airBlendBL,
+    getAltBaseline:()=>airFullBL
+  },
+  grocery:{
+    act:grocAct, spd:grocSpd, imps:grocImps,
+    hex:'#1D9E75', rgb:[29,158,117],
+    pl:'Flat Apr 11–25 avg (~'+grocFlat+')', al:'Apr 11–25 regression',
+    note:'Baseline = flat average of Apr 11–Apr 25 (~'+grocFlat+' orders/wk). Reflects stabilized demand before launch rather than projecting a temporary dip forward.',
+    showLag:false,
+    getBaseline:()=>LL.map(()=>grocFlat),
+    getAltBaseline:()=>grocAprBL
+  }
+};
+
+function ra(rgb,a){return`rgba(${rgb[0]},${rgb[1]},${rgb[2]},${a})`;}
+const gc='rgba(0,0,0,0.06)',tc='#888';
+let CH={os:null,oi:null,c:null,m:null};
+let CP='airport',CV='spend';
+
+const LP={id:'lp',afterDraw(ch){
+  const ctx=ch.ctx,x=ch.scales.x.getPixelForValue(LI),t=ch.chartArea.top,b=ch.chartArea.bottom;
+  ctx.save();ctx.strokeStyle='#E24B4A';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+  ctx.beginPath();ctx.moveTo(x,t);ctx.lineTo(x,b);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#E24B4A';ctx.font='11px sans-serif';ctx.fillText('Media launch',x+4,t+13);ctx.restore();
+}};
+
+function mkFP(bl,act,col){return{id:'ifp',afterDatasetsDraw(ch){
+  if(!ch.scales||!ch.scales.x||!ch.scales.y)return;
+  const ctx=ch.ctx;ctx.save();ctx.beginPath();let s=false;
+  for(let i=LI;i<NN;i++){
+    const x=ch.scales.x.getPixelForValue(i),y=ch.scales.y.getPixelForValue(Math.max(act[i],bl[i]));
+    if(!s){ctx.moveTo(x,y);s=true;}else ctx.lineTo(x,y);
+  }
+  for(let i=NN-1;i>=LI;i--){ctx.lineTo(ch.scales.x.getPixelForValue(i),ch.scales.y.getPixelForValue(bl[i]));}
+  ctx.closePath();ctx.fillStyle=col;ctx.fill();ctx.restore();
+}};}
+
+function dst(){Object.keys(CH).forEach(k=>{if(CH[k]){CH[k].destroy();CH[k]=null;}});}
+
+function buildCharts(p){
+  dst();
+  const d=PD[p];
+  const bl=d.getBaseline(),ab=d.getAltBaseline();
+  const inc=d.act.map((v,i)=>i>=LI?Math.max(0,v-bl[i]):0);
+  const inca=d.act.map((v,i)=>i>=LI?Math.max(0,v-ab[i]):0);
+
+  ['s','i'].forEach(sfx=>{
+    document.getElementById('la-'+sfx).style.background=d.hex;
+    document.getElementById('lb-'+sfx).style.borderTopColor=ra(d.rgb,0.6);
+    document.getElementById('lf-'+sfx).style.background=ra(d.rgb,0.22);
+  });
+  document.getElementById('lc1').style.background=ra(d.rgb,0.8);
+  document.getElementById('lc2').style.background=ra(d.rgb,0.25);
+  document.getElementById('lc1l').textContent=d.pl;
+  document.getElementById('lc2l').textContent=d.al;
+
+  // Show/hide lag callout for Airport only
+  document.getElementById('lag-callout').style.display=d.showLag?'block':'none';
+  document.getElementById('lag-callout-imps').style.display=d.showLag?'block':'none';
+
+  const mkOpts=(y2max,y2label,y2fmt)=>({
+    responsive:true,maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{
+      const v=Math.round(c.raw);
+      if(c.datasetIndex===2)return`${c.dataset.label}: ${y2fmt(v)}`;
+      if(c.datasetIndex===1)return`Baseline: ${v.toLocaleString()}`;
+      return`Actual: ${v.toLocaleString()} orders`;
+    }}}},
+    scales:{
+      x:{ticks:{color:tc,font:{size:10},maxRotation:45,autoSkip:false},grid:{color:gc}},
+      y:{title:{display:true,text:'Orders',color:tc,font:{size:11}},ticks:{color:tc,font:{size:11},callback:v=>v.toLocaleString()},grid:{color:gc}},
+      y2:{position:'right',title:{display:true,text:y2label,color:tc,font:{size:11}},max:y2max,ticks:{color:tc,font:{size:11},callback:y2fmt},grid:{display:false}}
+    }
+  });
+
+  const mkDs=(overlay,oColor,oLabel)=>[
+    {label:'Actual',data:d.act,borderColor:d.hex,backgroundColor:'transparent',borderWidth:2.5,pointRadius:3,tension:0.3,yAxisID:'y'},
+    {label:'Baseline',data:bl,borderColor:ra(d.rgb,0.55),backgroundColor:'transparent',borderWidth:1.5,borderDash:[5,4],pointRadius:0,tension:0.3,yAxisID:'y'},
+    {label:oLabel,data:overlay,borderColor:oColor,backgroundColor:'transparent',borderWidth:1.5,borderDash:[4,3],pointRadius:2,tension:0.3,yAxisID:'y2'}
+  ];
+
+  const spendMax=p==='airport'?150000:130000;
+  const impsMax=Math.max(...d.imps)*1.2;
+  const fmtSpend=v=>'$'+Math.round(v/1000)+'k';
+  const fmtImps=v=>v>=1000000?(v/1000000).toFixed(1)+'M':v>=1000?Math.round(v/1000)+'k':String(v);
+
+  CH.os=new Chart(document.getElementById('oc-spend'),{type:'line',plugins:[LP,mkFP(bl,d.act,ra(d.rgb,0.22))],data:{labels:LL,datasets:mkDs(d.spd,'#E24B4A','Spend')},options:mkOpts(spendMax,'Spend ($)',fmtSpend)});
+  CH.oi=new Chart(document.getElementById('oc-imps'),{type:'line',plugins:[LP,mkFP(bl,d.act,ra(d.rgb,0.22))],data:{labels:LL,datasets:mkDs(d.imps,'#7B5EA7','Impressions')},options:mkOpts(impsMax,'Impressions',fmtImps)});
+
+  const pL=LL.slice(LI);
+  const cpb1=[],cpb2=[];
+  for(let i=LI;i<NN;i++){
+    cpb1.push(inc[i]>0?Math.round(d.spd[i]/inc[i]):null);
+    cpb2.push(inca[i]>0?Math.round(d.spd[i]/inca[i]):null);
+  }
+
+  CH.c=new Chart(document.getElementById('cc'),{type:'bar',
+    data:{labels:pL,datasets:[
+      {label:d.pl,data:cpb1,backgroundColor:ra(d.rgb,0.8),borderColor:d.hex,borderWidth:0.5},
+      {label:d.al,data:cpb2,backgroundColor:ra(d.rgb,0.2),borderColor:ra(d.rgb,0.5),borderWidth:0.5}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.dataset.label}: $${(c.raw??0).toLocaleString()} / booking`}}},
+      scales:{x:{ticks:{color:tc,font:{size:11}},grid:{color:gc}},y:{title:{display:true,text:'$ per incremental booking',color:tc,font:{size:11}},ticks:{color:tc,font:{size:11},callback:v=>'$'+v.toLocaleString()},grid:{color:gc}}}}
+  });
+
+  CH.m=new Chart(document.getElementById('mc'),{type:'bar',
+    data:{labels:pL,datasets:[
+      {label:d.pl,data:inc.slice(LI),backgroundColor:ra(d.rgb,0.8),borderColor:d.hex,borderWidth:0.5},
+      {label:d.al,data:inca.slice(LI),backgroundColor:ra(d.rgb,0.2),borderColor:ra(d.rgb,0.5),borderWidth:0.5}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${(c.raw??0).toLocaleString()} orders`}}},
+      scales:{x:{ticks:{color:tc,font:{size:11}},grid:{color:gc}},y:{title:{display:true,text:'Incremental orders',color:tc,font:{size:11}},ticks:{color:tc,font:{size:11},callback:v=>v.toLocaleString()},grid:{color:gc}}}}
+  });
+
+  const ti=inc.reduce((a,b)=>a+b,0),tia=inca.reduce((a,b)=>a+b,0);
+  const ts=d.spd.slice(LI).reduce((a,b)=>a+b,0);
+  const to=d.act.slice(LI).reduce((a,b)=>a+b,0);
+  const cpb=ti>0?Math.round(ts/ti):0,cpba=tia>0?Math.round(ts/tia):0;
+
+  document.getElementById('mtr').innerHTML=`
+    <div class="mc"><div class="mlb">Total orders post-launch</div><div class="mv">${to.toLocaleString()}</div></div>
+    <div class="mc"><div class="mlb">Est. incremental orders</div><div class="mv g">${ti.toLocaleString()}</div></div>
+    <div class="mc"><div class="mlb">Total spend</div><div class="mv">$${Math.round(ts).toLocaleString()}</div></div>
+    <div class="mc"><div class="mlb">Blended CPB</div><div class="mv w">$${cpb.toLocaleString()}</div></div>`;
+
+  document.getElementById('on-spend').textContent=d.note;
+  document.getElementById('on-imps').textContent=d.note+(p==='airport'?' Impressions overlay shows weekly media exposure volume — the 5/23 impression drop (3.1M) and 5/30 drop (2.4M) mirror the order declines the following weeks, consistent with a 1-week lag pattern.':'  Impressions may better reflect awareness channel weight than spend when CPMs vary across platforms.');
+  document.getElementById('cn').innerHTML=`Primary (${d.pl}) CPB: <strong>$${cpb.toLocaleString()}</strong> &nbsp;·&nbsp; Alt (${d.al}) CPB: <strong>$${cpba.toLocaleString()}</strong>.`;
+  document.getElementById('ccs').innerHTML=`
+    <div class="cd"><div class="cdl">${d.pl} (primary)</div>
+      <div class="cr"><span class="ck">Baseline at launch</span><span>~${bl[LI].toLocaleString()}</span></div>
+      <div class="cr"><span class="ck">Incremental orders</span><span>${ti.toLocaleString()}</span></div>
+      <div class="cr"><span class="ck">% of post-launch orders</span><span>${Math.round(ti/to*100)}%</span></div>
+      <div class="cr"><span class="ck">Blended CPB</span><span>$${cpb.toLocaleString()}</span></div>
+    </div>
+    <div class="cd"><div class="cdl">${d.al} (alt)</div>
+      <div class="cr"><span class="ck">Baseline at launch</span><span>~${ab[LI].toLocaleString()}</span></div>
+      <div class="cr"><span class="ck">Incremental orders</span><span>${tia.toLocaleString()}</span></div>
+      <div class="cr"><span class="ck">% of post-launch orders</span><span>${Math.round(tia/to*100)}%</span></div>
+      <div class="cr"><span class="ck">Blended CPB</span><span>$${cpba.toLocaleString()}</span></div>
+    </div>`;
+}
+
+function sw(p){
+  CP=p;
+  document.getElementById('ba').classList.toggle('on',p==='airport');
+  document.getElementById('bg').classList.toggle('on',p==='grocery');
+  buildCharts(p);
+}
+function st(t){
+  ['o','c','m'].forEach(id=>document.getElementById('s'+id).classList.toggle('vis',id===t));
+  document.querySelectorAll('.tb').forEach((b,i)=>b.classList.toggle('on',['o','c','m'][i]===t));
+}
+function setView(v){
+  CV=v;
+  document.getElementById('pv-spend').classList.toggle('vis',v==='spend');
+  document.getElementById('pv-imps').classList.toggle('vis',v==='imps');
+  document.getElementById('sv-spend').classList.toggle('on',v==='spend');
+  document.getElementById('sv-imps').classList.toggle('on',v==='imps');
+}
+function toggleMeth(){
+  const d=document.getElementById('methdoc'),c=document.getElementById('methchev'),b=document.getElementById('methbtn');
+  const open=d.style.display==='none';
+  d.style.display=open?'block':'none';
+  c.style.transform=open?'rotate(180deg)':'';
+  b.style.borderRadius=open?'12px 12px 0 0':'12px';
+}
+function toggleRaw(){
+  const d=document.getElementById('rawdoc'),c=document.getElementById('rawchev'),b=document.getElementById('rawbtn');
+  const open=d.style.display==='none';
+  d.style.display=open?'block':'none';
+  c.style.transform=open?'rotate(180deg)':'';
+  b.style.borderRadius=open?'12px 12px 0 0':'12px';
+  if(open) buildTables();
+}
+function buildTables(){
+  function rows(act,bl,spd,imps,tbodyId,hex){
+    const tb=document.getElementById(tbodyId);
+    if(tb.children.length>0)return;
+    act.forEach((v,i)=>{
+      const bv=Array.isArray(bl)?bl[i]:bl;
+      const inc=i>=LI?Math.max(0,v-bv):0;
+      const cpb=inc>0?'$'+Math.round(spd[i]/inc).toLocaleString():'—';
+      const isPost=i>=LI;
+      const rowBg=isPost&&inc>0?`background:${hex}11`:'';
+      tb.innerHTML+=`<tr style="border-bottom:0.5px solid rgba(0,0,0,0.05);${rowBg}">
+        <td style="padding:6px 10px;white-space:nowrap;color:#444">${LL[i]}${i===LI?' ▲':''}</td>
+        <td style="padding:6px 10px;text-align:right;color:#1a1a18;font-weight:${isPost?'500':'400'}">${v.toLocaleString()}</td>
+        <td style="padding:6px 10px;text-align:right;color:#888">${bv.toLocaleString()}</td>
+        <td style="padding:6px 10px;text-align:right;color:${inc>0?hex:'#ccc'};font-weight:${inc>0?'500':'400'}">${inc>0?'+'+inc.toLocaleString():'—'}</td>
+        <td style="padding:6px 10px;text-align:right;color:#666">${spd[i]>0?'$'+Math.round(spd[i]).toLocaleString():'—'}</td>
+        <td style="padding:6px 10px;text-align:right;color:#666">${imps[i]>0?imps[i].toLocaleString():'—'}</td>
+        <td style="padding:6px 10px;text-align:right;color:#BA7517;font-weight:${inc>0?'500':'400'}">${cpb}</td>
+      </tr>`;
+    });
+    const totInc=act.slice(LI).reduce((a,v,i)=>a+Math.max(0,v-(Array.isArray(bl)?bl[i+LI]:bl)),0);
+    const totSpd=spd.slice(LI).reduce((a,b)=>a+b,0);
+    const totImps=imps.slice(LI).reduce((a,b)=>a+b,0);
+    const totOrd=act.slice(LI).reduce((a,b)=>a+b,0);
+    tb.innerHTML+=`<tr style="border-top:1px solid rgba(0,0,0,0.1);background:#f5f5f3;font-weight:500">
+      <td style="padding:7px 10px;color:#444">Total (post-launch)</td>
+      <td style="padding:7px 10px;text-align:right">${totOrd.toLocaleString()}</td>
+      <td style="padding:7px 10px;text-align:right;color:#888">—</td>
+      <td style="padding:7px 10px;text-align:right;color:${hex}">+${totInc.toLocaleString()}</td>
+      <td style="padding:7px 10px;text-align:right;color:#666">$${Math.round(totSpd).toLocaleString()}</td>
+      <td style="padding:7px 10px;text-align:right;color:#666">${totImps.toLocaleString()}</td>
+      <td style="padding:7px 10px;text-align:right;color:#BA7517">$${Math.round(totSpd/totInc).toLocaleString()}</td>
+    </tr>`;
+  }
+  rows(airAct,airBlendBL,airSpd,airImps,'air-tbody','#185FA5');
+  rows(grocAct,grocFlat,grocSpd,grocImps,'groc-tbody','#1D9E75');
+}
+buildCharts('airport');
+</script>
+</body>
+</html>
