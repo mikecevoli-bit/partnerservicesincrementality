@@ -210,6 +210,68 @@
   </div>
 </div>
 
+
+<!-- TAKEAWAYS -->
+<div style="max-width:900px;margin:.75rem auto 0">
+  <button onclick="toggleTake()" id="takebtn" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-radius:12px;cursor:pointer;font-size:13px;font-weight:500;color:#1a1a18;text-align:left;">
+    <span>Key takeaways</span>
+    <span id="takechev" style="font-size:16px;color:#888;transition:transform 0.2s">&#8964;</span>
+  </button>
+  <div id="takedoc" style="display:none;background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-top:none;border-radius:0 0 12px 12px;padding:1.5rem">
+
+    <p style="font-size:12px;color:#888;margin-bottom:1.25rem;line-height:1.6">Summary for broader team. These are directional findings — not controlled experiment results. Use to inform future investment decisions, not to report precise ROI.</p>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;margin-bottom:1.25rem">
+
+      <div style="border-radius:10px;border:0.5px solid rgba(24,95,165,0.3);padding:1.1rem 1.2rem;background:#f0f7ff">
+        <div style="font-size:11px;font-weight:500;color:#185FA5;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.5rem">Airport Transfer</div>
+        <div style="font-size:13px;color:#1a1a18;line-height:1.7">
+          Media appears to be driving lift above where the product was naturally heading. Orders tracked spend activity with a ~1-week lag — when spend pulled back in late May, orders followed the next week; when spend returned in June, orders stabilized.<br><br>
+          <strong>Most-likely cost per booking: $98–$125.</strong> Confidence is moderate — the product had strong organic growth before media launched, which makes it harder to isolate media's exact contribution.
+        </div>
+      </div>
+
+      <div style="border-radius:10px;border:0.5px solid rgba(29,158,117,0.3);padding:1.1rem 1.2rem;background:#f0faf6">
+        <div style="font-size:11px;font-weight:500;color:#1D9E75;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.5rem">Grocery (Instacart)</div>
+        <div style="font-size:13px;color:#1a1a18;line-height:1.7">
+          Strongest media signal of the two products. Impression volume explains 89% of the week-to-week variation in orders above baseline — a high correlation for an awareness channel. Grocery was recovering from an April dip when media launched, so some caution around how much was media-driven vs. natural recovery.<br><br>
+          <strong>Most-likely cost per booking: $174–$216.</strong> Confidence is strong on the correlation; the baseline assumption is the main source of uncertainty.
+        </div>
+      </div>
+
+    </div>
+
+    <div style="border-top:0.5px solid rgba(0,0,0,0.08);padding-top:1rem">
+      <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.6rem">What this means for future decisions</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.75rem">
+        <div style="font-size:12px;color:#555;line-height:1.6;padding:.75rem;background:#f5f5f3;border-radius:8px">
+          <strong style="color:#1a1a18;display:block;margin-bottom:3px">Spend level matters for Airport</strong>
+          The lag pattern suggests order volume is sensitive to weekly spend — pulling back significantly risks a measurable drop in bookings the following week.
+        </div>
+        <div style="font-size:12px;color:#555;line-height:1.6;padding:.75rem;background:#f5f5f3;border-radius:8px">
+          <strong style="color:#1a1a18;display:block;margin-bottom:3px">Grocery impression volume is the lever</strong>
+          High correlation between impressions and orders means reach matters more than just spend efficiency — CPM optimization that sacrifices reach may hurt bookings.
+        </div>
+        <div style="font-size:12px;color:#555;line-height:1.6;padding:.75rem;background:#f5f5f3;border-radius:8px">
+          <strong style="color:#1a1a18;display:block;margin-bottom:3px">These are directional, not precise</strong>
+          CPB estimates should be used as a benchmark range for planning, not as exact ROI figures. A proper holdout test would be needed to measure true incrementality.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function toggleTake(){
+  const d=document.getElementById('takedoc'),c=document.getElementById('takechev'),b=document.getElementById('takebtn');
+  const open=d.style.display==='none';
+  d.style.display=open?'block':'none';
+  c.style.transform=open?'rotate(180deg)':'';
+  b.style.borderRadius=open?'12px 12px 0 0':'12px';
+}
+</script>
+
 <div class="footer" style="margin-top:1.25rem">
   Data through Jun 6, 2026 · DIRECT_LANDING channel · Last-touch session attribution · Week-ending Saturday · Incremental = orders above projected organic baseline, post-launch only
 </div>
