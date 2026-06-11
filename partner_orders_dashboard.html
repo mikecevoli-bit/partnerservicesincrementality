@@ -158,6 +158,64 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 </div>
 
+<!-- CONTEXT -->
+<div style="max-width:900px;margin:.75rem auto 0">
+  <button onclick="toggleCtx()" id="ctxbtn" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-radius:12px 12px 0 0;cursor:pointer;font-size:13px;font-weight:500;color:#1a1a18;text-align:left;">
+    <span>About this analysis</span>
+    <span id="ctxchev" style="font-size:16px;color:#888;transition:transform 0.2s;transform:rotate(180deg)">&#8964;</span>
+  </button>
+  <div id="ctxdoc" style="display:block;background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-top:none;border-radius:0 0 12px 12px;padding:1.5rem">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.25rem">
+
+      <div>
+        <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.6rem">Why it was built</div>
+        <div style="font-size:13px;color:#444;line-height:1.75">
+          Partner product bookings (Airport Transfer, Grocery) happen outside Airbnb&#39;s standard tracking environment. The partner passes back matched orders to Airbnb user IDs, but only about <strong>28% of those events have a traceable last-touch path</strong> — meaning most bookings can&#39;t be tied to a specific ad click or channel.
+          <br><br>
+          For the remaining ~72%, the last known touchpoint is a direct session to Airbnb (DIRECT_LANDING). Brand media — TV, OTT, YouTube, social — typically drives awareness rather than direct clicks, so users influenced by it tend to return directly rather than through a tracked link. This makes DIRECT_LANDING the best available proxy for brand media impact, though it&#39;s not a guaranteed attribution.
+          <br><br>
+          <span style="display:inline-block;background:#f0f7ff;border-left:3px solid #185FA5;border-radius:0 6px 6px 0;padding:.5rem .75rem;font-size:12px;color:#444;line-height:1.6">An integrated solution is currently in progress to connect partner conversion data directly with Airbnb&#39;s backend attribution infrastructure. When live, this will replace the proxy approach with true conversion-level attribution and significantly improve measurement fidelity for these products.</span>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:1rem">
+        <div>
+          <div style="font-size:11px;font-weight:500;color:#0F6E56;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.5rem">What it&#39;s for</div>
+          <div style="font-size:13px;color:#444;line-height:1.75">
+            Use this as a <strong>directional read</strong> on whether brand media is making an impact — not as a precise measurement. It&#39;s useful for:
+            <ul style="margin:.4rem 0 0 1.1rem;padding:0;font-size:13px;color:#444;line-height:1.75">
+              <li>Confirming media activity is correlated with order lift above organic trend</li>
+              <li>Establishing a rough cost-per-booking range for planning and investment conversations</li>
+              <li>Tracking whether that relationship holds or changes over time as a baseline</li>
+            </ul>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:500;color:#A32D2D;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.5rem">What it&#39;s not for</div>
+          <div style="font-size:13px;color:#444;line-height:1.75">
+            <ul style="margin:0 0 0 1.1rem;padding:0;font-size:13px;color:#444;line-height:1.75">
+              <li>Forecasting or projecting future bookings</li>
+              <li>Accounting for macro factors — product changes, seasonality, competitive shifts, or external demand drivers are not in the model</li>
+              <li>Precise ROI reporting — significant changes to spend levels, product experience, or front-end efficiency would require the model to be re-run to remain valid</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleCtx(){
+  const d=document.getElementById('ctxdoc'),c=document.getElementById('ctxchev'),b=document.getElementById('ctxbtn');
+  const open=d.style.display==='none';
+  d.style.display=open?'block':'none';
+  c.style.transform=open?'rotate(180deg)':'';
+  b.style.borderRadius=open?'12px 12px 0 0':'12px';
+}
+</script>
+
 <!-- METHODOLOGY -->
 <div style="max-width:900px;margin:.75rem auto 0">
   <button onclick="toggleMeth()" id="methbtn" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-radius:12px;cursor:pointer;font-size:13px;font-weight:500;color:#1a1a18;text-align:left;">
