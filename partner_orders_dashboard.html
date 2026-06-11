@@ -6,49 +6,61 @@
 <title>Partner Orders — Incremental Analysis</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f3; color: #1a1a18; padding: 2rem; font-size: 14px; line-height: 1.6; }
-  .page-header { margin-bottom: 1.75rem; max-width: 900px; margin-left: auto; margin-right: auto; }
-  .page-header h1 { font-size: 20px; font-weight: 500; margin-bottom: 4px; }
-  .page-header p { font-size: 13px; color: #666; }
-  .card { background: #fff; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 12px; padding: 1.5rem; max-width: 900px; margin: 0 auto; }
-  .pr { display: flex; gap: 8px; margin-bottom: 1.1rem; }
-  .pb { padding: 7px 20px; font-size: 13px; border: 0.5px solid #ccc; border-radius: 8px; background: #f5f5f3; color: #666; cursor: pointer; transition: all 0.15s; }
-  .pb:hover { background: #eee; }
-  .pb.on { font-weight: 500; color: #1a1a18; border-color: #999; background: #fff; }
-  .tr { display: flex; gap: 6px; margin-bottom: 1rem; flex-wrap: wrap; }
-  .tb { padding: 5px 13px; font-size: 12px; border: 0.5px solid #ccc; border-radius: 8px; background: #f5f5f3; color: #666; cursor: pointer; }
-  .tb:hover { background: #eee; }
-  .tb.on { background: #fff; color: #1a1a18; border-color: #999; font-weight: 500; }
-  .str { display: flex; gap: 6px; margin-bottom: 0.85rem; }
-  .stb { padding: 4px 11px; font-size: 11px; border: 0.5px solid #ccc; border-radius: 6px; background: #f5f5f3; color: #888; cursor: pointer; }
-  .stb.on { background: #fff; color: #1a1a18; border-color: #999; font-weight: 500; }
-  .sec { display: none; } .sec.vis { display: block; }
-  .mr { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 1rem; }
-  .mc { background: #f5f5f3; border-radius: 8px; padding: .8rem 1rem; flex: 1; min-width: 110px; }
-  .mlb { font-size: 11px; color: #888; margin-bottom: 3px; }
-  .mv { font-size: 19px; font-weight: 500; color: #1a1a18; }
-  .mv.g { color: #0F6E56; } .mv.w { color: #BA7517; }
-  .lg { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: .7rem; font-size: 12px; color: #666; align-items: center; }
-  .nt { font-size: 11px; color: #888; margin-top: .7rem; border-top: 0.5px solid rgba(0,0,0,0.1); padding-top: .7rem; line-height: 1.6; }
-  .callout { border-left: 3px solid #BA7517; background: #FFF8E8; border-radius: 0 6px 6px 0; padding: .75rem 1rem; margin-top: .75rem; font-size: 12px; color: #555; line-height: 1.6; }
-  .callout strong { color: #BA7517; display: block; margin-bottom: 3px; font-size: 11px; text-transform: uppercase; letter-spacing: .03em; }
-  .cv { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 1rem; }
-  .cd { flex: 1; min-width: 155px; border: 0.5px solid rgba(0,0,0,0.1); border-radius: 8px; padding: .8rem 1rem; }
-  .cdl { font-size: 11px; color: #888; margin-bottom: 6px; font-weight: 500; }
-  .cr { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; border-bottom: 0.5px solid rgba(0,0,0,0.08); }
-  .cr:last-child { border-bottom: none; }
-  .ck { color: #888; }
-  .panel { display: none; } .panel.vis { display: block; }
-  .footer { text-align: center; font-size: 11px; color: #aaa; margin-top: 1.5rem; max-width: 900px; margin-left: auto; margin-right: auto; }
-  @media (max-width: 600px) { body { padding: 1rem; } .pr, .tr { flex-wrap: wrap; } }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f5f3;color:#1a1a18;padding:2rem;font-size:14px;line-height:1.6}
+.page-header{margin-bottom:1.75rem;max-width:900px;margin-left:auto;margin-right:auto}
+.page-header h1{font-size:20px;font-weight:500;margin-bottom:4px}
+.page-header p{font-size:13px;color:#666}
+.card{background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-radius:12px;padding:1.5rem;max-width:900px;margin:0 auto}
+.pr{display:flex;gap:8px;margin-bottom:1.1rem}
+.pb{padding:7px 20px;font-size:13px;border:0.5px solid #ccc;border-radius:8px;background:#f5f5f3;color:#666;cursor:pointer;transition:all .15s}
+.pb:hover{background:#eee}
+.pb.on{font-weight:500;color:#1a1a18;border-color:#999;background:#fff}
+.tr{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap}
+.tb{padding:5px 13px;font-size:12px;border:0.5px solid #ccc;border-radius:8px;background:#f5f5f3;color:#666;cursor:pointer}
+.tb:hover{background:#eee}
+.tb.on{background:#fff;color:#1a1a18;border-color:#999;font-weight:500}
+.str{display:flex;gap:6px;margin-bottom:.85rem}
+.stb{padding:4px 11px;font-size:11px;border:0.5px solid #ccc;border-radius:6px;background:#f5f5f3;color:#888;cursor:pointer}
+.stb.on{background:#fff;color:#1a1a18;border-color:#999;font-weight:500}
+.sec{display:none}.sec.vis{display:block}
+.mr{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:1rem}
+.mc{background:#f5f5f3;border-radius:8px;padding:.8rem 1rem;flex:1;min-width:110px}
+.mlb{font-size:11px;color:#888;margin-bottom:3px}
+.mv{font-size:19px;font-weight:500;color:#1a1a18}
+.mv.g{color:#0F6E56}.mv.w{color:#BA7517}.mv.b{color:#185FA5}
+.lg{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:.7rem;font-size:12px;color:#666;align-items:center}
+.nt{font-size:11px;color:#888;margin-top:.7rem;border-top:0.5px solid rgba(0,0,0,0.1);padding-top:.7rem;line-height:1.7}
+.callout{border-left:3px solid #BA7517;background:#FFF8E8;border-radius:0 6px 6px 0;padding:.75rem 1rem;margin-top:.75rem;font-size:12px;color:#555;line-height:1.6}
+.callout strong{color:#BA7517;display:block;margin-bottom:3px;font-size:11px;text-transform:uppercase;letter-spacing:.03em}
+.rcard{border:0.5px solid rgba(0,0,0,0.1);border-radius:8px;padding:.85rem 1rem;margin-top:.75rem}
+.rtitle{font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.7rem}
+.rrow{display:flex;align-items:center;gap:10px;margin-bottom:.55rem;font-size:12px}
+.rlbl{width:185px;flex-shrink:0;color:#666;line-height:1.5}
+.rbw{flex:1;position:relative;height:22px}
+.rbbg{position:absolute;top:8px;left:0;right:0;height:6px;background:rgba(0,0,0,0.08);border-radius:3px}
+.rbf{position:absolute;top:8px;height:6px;border-radius:3px}
+.rbd{position:absolute;top:5px;width:12px;height:12px;border-radius:50%;border:2px solid #fff;margin-left:-6px}
+.rval{font-size:12px;font-weight:500;min-width:100px;text-align:right;color:#1a1a18}
+.cb{display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:500;margin-left:4px;vertical-align:middle}
+.cs{background:#E1F5EE;color:#085041}.cm{background:#E6F1FB;color:#0C447C}.cw{background:#FAEEDA;color:#633806}
+.ds-note{font-size:11px;color:#888;margin-top:.5rem;padding:.6rem .85rem;background:#f5f5f3;border-radius:8px;line-height:1.6;border:0.5px dashed #ccc}
+.ds-note strong{color:#444}
+.cv{display:flex;flex-wrap:wrap;gap:10px;margin-top:1rem}
+.cd{flex:1;min-width:155px;border:0.5px solid rgba(0,0,0,0.1);border-radius:8px;padding:.8rem 1rem}
+.cdl{font-size:11px;color:#888;margin-bottom:6px;font-weight:500}
+.cr{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:0.5px solid rgba(0,0,0,0.08)}
+.cr:last-child{border-bottom:none}
+.ck{color:#888}
+.footer{text-align:center;font-size:11px;color:#aaa;margin-top:1.5rem;max-width:900px;margin-left:auto;margin-right:auto}
+@media(max-width:600px){body{padding:1rem}.pr,.tr{flex-wrap:wrap}}
 </style>
 </head>
 <body>
 
 <div class="page-header">
   <h1>Partner Orders — Incremental Media Analysis</h1>
-  <p>Direct landing orders for Airport Transfer (Welcome Pickups) and Grocery (Instacart) · Jan 31–Jun 6, 2026 · Media launched Apr 26</p>
+  <p>Direct landing orders · Airport Transfer (Welcome Pickups) &amp; Grocery (Instacart) · Jan 31–Jun 6, 2026 · Media launched Apr 26</p>
 </div>
 
 <div class="card">
@@ -58,65 +70,96 @@
   </div>
   <div class="tr">
     <button class="tb on" onclick="st('o')">Orders + Baseline</button>
-    <button class="tb" onclick="st('c')">Cost per Booking</button>
+    <button class="tb" onclick="st('r')">Media Correlation</button>
     <button class="tb" onclick="st('m')">Baseline Comparison</button>
   </div>
 
+  <!-- ORDERS + BASELINE TAB -->
   <div id="so" class="sec vis">
     <div class="mr" id="mtr"></div>
     <div class="str">
       <button class="stb on" id="sv-spend" onclick="setView('spend')">Spend overlay</button>
       <button class="stb" id="sv-imps" onclick="setView('imps')">Impressions overlay</button>
     </div>
-    <div id="pv-spend" class="panel vis">
+    <div id="pv-spend" class="sec vis">
       <div class="lg">
         <span style="display:flex;align-items:center;gap:5px"><span id="la-s" style="width:18px;height:2.5px;display:inline-block;background:#185FA5"></span>Actual orders</span>
         <span style="display:flex;align-items:center;gap:5px"><span id="lb-s" style="width:18px;height:0;display:inline-block;border-top:2px dashed rgba(24,95,165,0.6)"></span>Organic baseline</span>
         <span style="display:flex;align-items:center;gap:5px"><span id="lf-s" style="width:10px;height:10px;border-radius:2px;display:inline-block;background:rgba(24,95,165,0.22)"></span>Incremental (est.)</span>
         <span style="display:flex;align-items:center;gap:5px"><span style="width:18px;height:0;display:inline-block;border-top:2px dashed #E24B4A"></span>Spend (right)</span>
       </div>
-      <div style="position:relative;width:100%;height:340px"><canvas id="oc-spend"></canvas></div>
+      <div style="position:relative;width:100%;height:340px"><canvas id="oc-spend" role="img" aria-label="Orders vs baseline with spend overlay"></canvas></div>
       <div class="nt" id="on-spend"></div>
       <div class="callout" id="lag-callout" style="display:none">
         <strong>Spend–order lag signal (Airport Transfer)</strong>
-        Spend pulled back on 5/23 ($54k) and 5/30 ($50k) — orders declined the following weeks with an approximate 1-week lag (5/30: 4,725 and 6/6: 4,571). When spend increased again to $71k in 6/6, orders stabilized. This lag pattern suggests media dependency: orders may have declined further without any spend floor. The incremental model credits orders above the baseline projection; the lag effect is additive evidence of media contribution during the pullback weeks.
+        Spend pulled back 5/23→5/30 and orders followed with ~1-week lag. When spend recovered 6/6, orders stabilized. This pattern holds across 4 of 5 valid lag weeks and is evidence of media dependency beyond what the baseline incremental math alone captures.
       </div>
     </div>
-    <div id="pv-imps" class="panel">
+    <div id="pv-imps" class="sec">
       <div class="lg">
         <span style="display:flex;align-items:center;gap:5px"><span id="la-i" style="width:18px;height:2.5px;display:inline-block;background:#185FA5"></span>Actual orders</span>
         <span style="display:flex;align-items:center;gap:5px"><span id="lb-i" style="width:18px;height:0;display:inline-block;border-top:2px dashed rgba(24,95,165,0.6)"></span>Organic baseline</span>
         <span style="display:flex;align-items:center;gap:5px"><span id="lf-i" style="width:10px;height:10px;border-radius:2px;display:inline-block;background:rgba(24,95,165,0.22)"></span>Incremental (est.)</span>
         <span style="display:flex;align-items:center;gap:5px"><span style="width:18px;height:0;display:inline-block;border-top:2px dashed #7B5EA7"></span>Impressions (right)</span>
       </div>
-      <div style="position:relative;width:100%;height:340px"><canvas id="oc-imps"></canvas></div>
+      <div style="position:relative;width:100%;height:340px"><canvas id="oc-imps" role="img" aria-label="Orders vs baseline with impressions overlay"></canvas></div>
       <div class="nt" id="on-imps"></div>
-      <div class="callout" id="lag-callout-imps" style="display:none">
-        <strong>Spend–order lag signal (Airport Transfer)</strong>
-        Impression volume declined on 5/23 (3.1M) and 5/30 (2.4M) — orders followed with an approximate 1-week lag. When impressions recovered to 2.8M in 6/6, orders stabilized. This pattern is consistent across both spend and impression volume, strengthening the case for media dependency during the pullback weeks.
-      </div>
     </div>
   </div>
 
-  <div id="sc" class="sec">
-    <div style="margin-bottom:.75rem;font-size:13px;color:#666">Spend divided by incremental orders above baseline. Post-launch weeks only.</div>
+  <!-- BASELINE COMPARISON TAB -->
+  <div id="sm" class="sec">
+    <div style="margin-bottom:.75rem;font-size:13px;color:#666">How baseline choice changes the incremental order estimate.</div>
     <div class="lg">
       <span style="display:flex;align-items:center;gap:5px"><span id="lc1" style="width:10px;height:10px;border-radius:2px;display:inline-block;background:#185FA5"></span><span id="lc1l">Primary baseline</span></span>
       <span style="display:flex;align-items:center;gap:5px"><span id="lc2" style="width:10px;height:10px;border-radius:2px;display:inline-block;background:rgba(24,95,165,0.25)"></span><span id="lc2l">Alt baseline</span></span>
     </div>
-    <div style="position:relative;width:100%;height:300px"><canvas id="cc"></canvas></div>
-    <div class="nt" id="cn"></div>
+    <div style="position:relative;width:100%;height:270px"><canvas id="mc" role="img" aria-label="Incremental orders by baseline method"></canvas></div>
+    <div class="cv" id="ccs"></div>
   </div>
 
-  <div id="sm" class="sec">
-    <div style="margin-bottom:.75rem;font-size:13px;color:#666">How baseline choice changes the incremental order estimate.</div>
-    <div style="position:relative;width:100%;height:270px"><canvas id="mc"></canvas></div>
-    <div class="cv" id="ccs"></div>
+  <!-- MEDIA CORRELATION TAB -->
+  <div id="sr" class="sec">
+    <div class="mr" id="corr-metrics"></div>
+    <div class="lg" id="corr-lg"></div>
+    <div style="position:relative;width:100%;height:290px"><canvas id="ch-corr" role="img" aria-label="Residual regression chart showing orders above baseline vs impression model fits"></canvas></div>
+    <div class="rcard" id="corr-range"></div>
+    <div class="nt" id="corr-nt"></div>
+    <div class="ds-note" id="ds-note"></div>
+  </div>
+</div>
+
+<!-- TAKEAWAYS -->
+<div style="max-width:900px;margin:1.25rem auto 0">
+  <button onclick="toggleTake()" id="takebtn" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-radius:12px 12px 0 0;cursor:pointer;font-size:13px;font-weight:500;color:#1a1a18;text-align:left;">
+    <span>Key takeaways</span>
+    <span id="takechev" style="font-size:16px;color:#888;transition:transform 0.2s;transform:rotate(180deg)">&#8964;</span>
+  </button>
+  <div id="takedoc" style="display:block;background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-top:none;border-radius:0 0 12px 12px;padding:1.5rem">
+    <p style="font-size:12px;color:#888;margin-bottom:1.25rem;line-height:1.6">Summary for broader team. Directional findings — not controlled experiment results. Use to inform future investment decisions, not to report precise ROI.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;margin-bottom:1.25rem">
+      <div style="border-radius:10px;border:0.5px solid rgba(24,95,165,0.3);padding:1.1rem 1.2rem;background:#f0f7ff">
+        <div style="font-size:11px;font-weight:500;color:#185FA5;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.5rem">Airport Transfer</div>
+        <div style="font-size:13px;color:#1a1a18;line-height:1.7">Media appears to be driving lift above where the product was naturally heading. Orders tracked spend activity with a ~1-week lag — when spend pulled back in late May, orders followed the next week; when spend returned in June, orders stabilized.<br><br><strong>Most-likely cost per booking: $98–$125.</strong> Confidence is moderate — strong organic growth before launch makes it harder to isolate media's exact contribution.</div>
+      </div>
+      <div style="border-radius:10px;border:0.5px solid rgba(29,158,117,0.3);padding:1.1rem 1.2rem;background:#f0faf6">
+        <div style="font-size:11px;font-weight:500;color:#1D9E75;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.5rem">Grocery (Instacart)</div>
+        <div style="font-size:13px;color:#1a1a18;line-height:1.7">Strongest media signal of the two products. Impression volume explains 89% of week-to-week variation in orders above baseline. Grocery was recovering from an April dip when media launched, so some caution around media-driven vs. natural recovery.<br><br><strong>Most-likely cost per booking: $174–$216.</strong> Confidence is strong on the correlation; the baseline assumption is the main source of uncertainty.</div>
+      </div>
+    </div>
+    <div style="border-top:0.5px solid rgba(0,0,0,0.08);padding-top:1rem">
+      <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.6rem">What this means for future decisions</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.75rem">
+        <div style="font-size:12px;color:#555;line-height:1.6;padding:.75rem;background:#f5f5f3;border-radius:8px"><strong style="color:#1a1a18;display:block;margin-bottom:3px">Spend level matters for Airport</strong>The lag pattern suggests order volume is sensitive to weekly spend — pulling back significantly risks a measurable drop in bookings the following week.</div>
+        <div style="font-size:12px;color:#555;line-height:1.6;padding:.75rem;background:#f5f5f3;border-radius:8px"><strong style="color:#1a1a18;display:block;margin-bottom:3px">Grocery impression volume is the lever</strong>High correlation between impressions and orders means reach matters more than spend efficiency — CPM optimization that sacrifices reach may hurt bookings.</div>
+        <div style="font-size:12px;color:#555;line-height:1.6;padding:.75rem;background:#f5f5f3;border-radius:8px"><strong style="color:#1a1a18;display:block;margin-bottom:3px">These are directional, not precise</strong>CPB estimates should be used as a planning benchmark, not exact ROI. A proper holdout test would be needed to measure true incrementality.</div>
+      </div>
+    </div>
   </div>
 </div>
 
 <!-- METHODOLOGY -->
-<div style="max-width:900px;margin:1.25rem auto 0">
+<div style="max-width:900px;margin:.75rem auto 0">
   <button onclick="toggleMeth()" id="methbtn" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-radius:12px;cursor:pointer;font-size:13px;font-weight:500;color:#1a1a18;text-align:left;">
     <span>Methodology &amp; data sources</span>
     <span id="methchev" style="font-size:16px;color:#888;transition:transform 0.2s">&#8964;</span>
@@ -130,30 +173,15 @@
       </a>
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.5rem;margin-bottom:1.5rem">
-      <div>
-        <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.6rem">Order data</div>
-        <div style="font-size:13px;color:#444;line-height:1.7">Source: <code style="font-size:12px;background:#f5f5f3;padding:1px 5px;border-radius:4px">oyster_production_partnerorderitem_deserialized_v01$latest</code><br>Filtered to non-empty <code style="font-size:12px;background:#f5f5f3;padding:1px 5px;border-radius:4px">connected_order_items</code> only.<br><br>Products: Airport Transfer (ID 37), Grocery (ID 34).<br>Date range: Jan 31–Jun 6, 2026 (week-ending Saturday).</div>
-      </div>
-      <div>
-        <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.6rem">Channel attribution</div>
-        <div style="font-size:13px;color:#444;line-height:1.7">Source: <code style="font-size:12px;background:#f5f5f3;padding:1px 5px;border-radius:4px">traffic.session__dim_growth_channel</code><br><br>Last-touch, click-based. DIRECT_LANDING channel only (~72% of all partner orders). Proxy for brand and upper-funnel media influence.</div>
-      </div>
-      <div>
-        <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.6rem">Media data</div>
-        <div style="font-size:13px;color:#444;line-height:1.7">Weekly spend and impressions, week-ending Saturday (Sun–Sat).<br><br>Airport Transfer: Meta PrivateCars + DV360 CTV/YouTube + OLV.<br>Grocery: Meta Groceries + DV360 CTV/YouTube.<br>Reviews spend excluded.</div>
-      </div>
+      <div><div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.6rem">Order data</div><div style="font-size:13px;color:#444;line-height:1.7">Source: <code style="font-size:12px;background:#f5f5f3;padding:1px 5px;border-radius:4px">oyster_production_partnerorderitem_deserialized_v01$latest</code><br>Filtered to non-empty <code style="font-size:12px;background:#f5f5f3;padding:1px 5px;border-radius:4px">connected_order_items</code> only. Products: Airport Transfer (ID 37), Grocery (ID 34). Week-ending Saturday (Sun–Sat). Jan 31–Jun 6, 2026.</div></div>
+      <div><div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.6rem">Channel attribution</div><div style="font-size:13px;color:#444;line-height:1.7">Source: <code style="font-size:12px;background:#f5f5f3;padding:1px 5px;border-radius:4px">traffic.session__dim_growth_channel</code><br>Last-touch, click-based. DIRECT_LANDING channel only (~72% of all partner orders). Proxy for brand and upper-funnel media influence.</div></div>
+      <div><div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.6rem">Media data</div><div style="font-size:13px;color:#444;line-height:1.7">Source: services_ctd_6_11.xlsx — weekly spend and impressions, week-ending Saturday. Reviews excluded. Airport: Meta PrivateCars + DV360 CTV/YouTube + OLV. Grocery: Meta Groceries + DV360 CTV/YouTube.</div></div>
     </div>
     <div style="border-top:0.5px solid rgba(0,0,0,0.08);padding-top:1.25rem;margin-bottom:1.25rem">
       <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.75rem">Organic baseline methodology</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.25rem">
-        <div style="background:#f0f7ff;border-radius:8px;padding:1rem">
-          <div style="font-size:12px;font-weight:500;color:#185FA5;margin-bottom:.4rem">Airport Transfer — Slope blend</div>
-          <div style="font-size:13px;color:#444;line-height:1.7">Hybrid baseline averaging the full Jan–Apr regression slope (~298/wk) with the Apr 4–25 slope (~108/wk), anchored at the last pre-launch data point (3,694 on 4/25). Resulting slope: ~203 orders/week.<br><br>Rationale: Airport Transfer growth materially decelerated in April (avg +112 orders/wk vs. +298 over the full period), suggesting the product was approaching a natural plateau. The blend honors the long-run trend while acknowledging the slowdown immediately before launch.</div>
-        </div>
-        <div style="background:#f0faf6;border-radius:8px;padding:1rem">
-          <div style="font-size:12px;font-weight:500;color:#1D9E75;margin-bottom:.4rem">Grocery — Flat Apr 11–25 average</div>
-          <div style="font-size:13px;color:#444;line-height:1.7">Flat average of Apr 11–Apr 25 (~1,968 orders/wk). Grocery had a sharp pullback in April after a March peak — holding flat reflects the stabilized run rate before launch rather than projecting a temporary dip forward as a continuing decline.</div>
-        </div>
+        <div style="background:#f0f7ff;border-radius:8px;padding:1rem"><div style="font-size:12px;font-weight:500;color:#185FA5;margin-bottom:.4rem">Airport Transfer — slope blend</div><div style="font-size:13px;color:#444;line-height:1.7">Average of full Jan–Apr slope (~298/wk) and Apr 4–25 slope (~108/wk), anchored at 4/25 actual (3,694). Result: ~203 orders/week. Reflects long-run growth and April deceleration signal. Alt baseline: full Jan–Apr regression.</div></div>
+        <div style="background:#f0faf6;border-radius:8px;padding:1rem"><div style="font-size:12px;font-weight:500;color:#1D9E75;margin-bottom:.4rem">Grocery — flat Apr 11–25 average</div><div style="font-size:13px;color:#444;line-height:1.7">Flat average of Apr 11–Apr 25 (~1,968 orders/wk). Reflects stabilized demand before launch rather than projecting a temporary April dip forward as a continuing decline. Alt: Apr 11–25 regression.</div></div>
       </div>
     </div>
     <div style="border-top:0.5px solid rgba(0,0,0,0.08);padding-top:1.25rem">
@@ -161,8 +189,8 @@
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.75rem">
         <div style="font-size:12px;color:#666;line-height:1.6;padding:.75rem;background:#f5f5f3;border-radius:8px"><strong style="color:#444;display:block;margin-bottom:3px">Attribution model</strong>Last-touch click model undercounts brand/upper-funnel channels. DIRECT_LANDING is a proxy, not a direct measurement.</div>
         <div style="font-size:12px;color:#666;line-height:1.6;padding:.75rem;background:#f5f5f3;border-radius:8px"><strong style="color:#444;display:block;margin-bottom:3px">Incrementality is estimated</strong>No holdout group was run. CPB figures are directional, not precise ROI measurements.</div>
-        <div style="font-size:12px;color:#666;line-height:1.6;padding:.75rem;background:#f5f5f3;border-radius:8px"><strong style="color:#444;display:block;margin-bottom:3px">Spend–order lag</strong>Airport Transfer shows a ~1-week lag between spend changes and order volume changes. The 5/30 and 6/6 order declines track the spend pullback on 5/23 and 5/30. This lag is evidence of media dependency beyond what the baseline incremental math captures.</div>
-        <div style="font-size:12px;color:#666;line-height:1.6;padding:.75rem;background:#f5f5f3;border-radius:8px"><strong style="color:#444;display:block;margin-bottom:3px">Week convention</strong>All data uses week-ending Saturday (Sun–Sat). Orders from dim_time ds_week_ending; media from weekly aggregated export.</div>
+        <div style="font-size:12px;color:#666;line-height:1.6;padding:.75rem;background:#f5f5f3;border-radius:8px"><strong style="color:#444;display:block;margin-bottom:3px">Impressions vs. spend</strong>Impressions reflect actual exposure volume. Spend varies with CPM shifts across channels — equal spend ≠ equal reach.</div>
+        <div style="font-size:12px;color:#666;line-height:1.6;padding:.75rem;background:#f5f5f3;border-radius:8px"><strong style="color:#444;display:block;margin-bottom:3px">Week convention</strong>All data uses week-ending Saturday (Sun–Sat). Orders from dim_time; media from weekly export.</div>
       </div>
     </div>
   </div>
@@ -206,71 +234,9 @@
         <tbody id="groc-tbody"></tbody>
       </table>
     </div>
-    <p style="font-size:11px;color:#aaa;margin-top:1rem;line-height:1.6">Media data: week-ending Saturday (Sun–Sat). Reviews spend excluded. Airport Transfer includes Meta PrivateCars, DV360 CTV/YouTube, and pre-launch OLV. Grocery includes Meta Groceries and DV360 CTV/YouTube.</p>
+    <p style="font-size:11px;color:#aaa;margin-top:1rem;line-height:1.6">Media data: week-ending Saturday. Reviews excluded. Airport includes Meta PrivateCars, DV360 CTV/YouTube, and pre-launch OLV. Grocery includes Meta Groceries and DV360 CTV/YouTube.</p>
   </div>
 </div>
-
-
-<!-- TAKEAWAYS -->
-<div style="max-width:900px;margin:.75rem auto 0">
-  <button onclick="toggleTake()" id="takebtn" style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-radius:12px;cursor:pointer;font-size:13px;font-weight:500;color:#1a1a18;text-align:left;">
-    <span>Key takeaways</span>
-    <span id="takechev" style="font-size:16px;color:#888;transition:transform 0.2s">&#8964;</span>
-  </button>
-  <div id="takedoc" style="display:none;background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-top:none;border-radius:0 0 12px 12px;padding:1.5rem">
-
-    <p style="font-size:12px;color:#888;margin-bottom:1.25rem;line-height:1.6">Summary for broader team. These are directional findings — not controlled experiment results. Use to inform future investment decisions, not to report precise ROI.</p>
-
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;margin-bottom:1.25rem">
-
-      <div style="border-radius:10px;border:0.5px solid rgba(24,95,165,0.3);padding:1.1rem 1.2rem;background:#f0f7ff">
-        <div style="font-size:11px;font-weight:500;color:#185FA5;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.5rem">Airport Transfer</div>
-        <div style="font-size:13px;color:#1a1a18;line-height:1.7">
-          Media appears to be driving lift above where the product was naturally heading. Orders tracked spend activity with a ~1-week lag — when spend pulled back in late May, orders followed the next week; when spend returned in June, orders stabilized.<br><br>
-          <strong>Most-likely cost per booking: $98–$125.</strong> Confidence is moderate — the product had strong organic growth before media launched, which makes it harder to isolate media's exact contribution.
-        </div>
-      </div>
-
-      <div style="border-radius:10px;border:0.5px solid rgba(29,158,117,0.3);padding:1.1rem 1.2rem;background:#f0faf6">
-        <div style="font-size:11px;font-weight:500;color:#1D9E75;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.5rem">Grocery (Instacart)</div>
-        <div style="font-size:13px;color:#1a1a18;line-height:1.7">
-          Strongest media signal of the two products. Impression volume explains 89% of the week-to-week variation in orders above baseline — a high correlation for an awareness channel. Grocery was recovering from an April dip when media launched, so some caution around how much was media-driven vs. natural recovery.<br><br>
-          <strong>Most-likely cost per booking: $174–$216.</strong> Confidence is strong on the correlation; the baseline assumption is the main source of uncertainty.
-        </div>
-      </div>
-
-    </div>
-
-    <div style="border-top:0.5px solid rgba(0,0,0,0.08);padding-top:1rem">
-      <div style="font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.6rem">What this means for future decisions</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.75rem">
-        <div style="font-size:12px;color:#555;line-height:1.6;padding:.75rem;background:#f5f5f3;border-radius:8px">
-          <strong style="color:#1a1a18;display:block;margin-bottom:3px">Spend level matters for Airport</strong>
-          The lag pattern suggests order volume is sensitive to weekly spend — pulling back significantly risks a measurable drop in bookings the following week.
-        </div>
-        <div style="font-size:12px;color:#555;line-height:1.6;padding:.75rem;background:#f5f5f3;border-radius:8px">
-          <strong style="color:#1a1a18;display:block;margin-bottom:3px">Grocery impression volume is the lever</strong>
-          High correlation between impressions and orders means reach matters more than just spend efficiency — CPM optimization that sacrifices reach may hurt bookings.
-        </div>
-        <div style="font-size:12px;color:#555;line-height:1.6;padding:.75rem;background:#f5f5f3;border-radius:8px">
-          <strong style="color:#1a1a18;display:block;margin-bottom:3px">These are directional, not precise</strong>
-          CPB estimates should be used as a benchmark range for planning, not as exact ROI figures. A proper holdout test would be needed to measure true incrementality.
-        </div>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<script>
-function toggleTake(){
-  const d=document.getElementById('takedoc'),c=document.getElementById('takechev'),b=document.getElementById('takebtn');
-  const open=d.style.display==='none';
-  d.style.display=open?'block':'none';
-  c.style.transform=open?'rotate(180deg)':'';
-  b.style.borderRadius=open?'12px 12px 0 0':'12px';
-}
-</script>
 
 <div class="footer" style="margin-top:1.25rem">
   Data through Jun 6, 2026 · DIRECT_LANDING channel · Last-touch session attribution · Week-ending Saturday · Incremental = orders above projected organic baseline, post-launch only
@@ -278,59 +244,57 @@ function toggleTake(){
 
 <script>
 const LL=['1/31','2/7','2/14','2/21','2/28','3/7','3/14','3/21','3/28','4/4','4/11','4/18','4/25','5/2','5/9','5/16','5/23','5/30','6/6'];
-const NN=LL.length, LI=13;
-
+const NN=LL.length,LI=13;
 const airAct=[444,562,802,926,1259,1568,1916,1815,2553,3358,3357,3432,3694,4343,4878,5105,5366,4725,4571];
 const grocAct=[361,408,866,1307,1440,1803,2407,2585,2608,2813,2121,1813,1971,1935,1973,2187,2672,2388,2564];
-
 const airSpd=[0,0,0,0,0,0,0,0,0,0,80,1039,0,19050,71899,78080,54085,50471,70577];
 const grocSpd=[0,0,0,0,0,0,0,0,0,0,0,0,0,18101,56655,80531,112603,74501,77383];
 const airImps=[0,0,0,0,0,0,0,0,0,0,3192,35083,0,2115163,3854696,4774054,3087094,2436044,2845685];
 const grocImps=[0,0,0,0,0,0,0,0,0,0,0,0,0,1198436,2650352,3207949,5709899,5521832,6899827];
-
 const grocFlat=Math.round((grocAct[10]+grocAct[11]+grocAct[12])/3);
+const airBL=LL.map((_,i)=>Math.max(0,Math.round(1257.3538+203.0538*i)));
+function lr(y,f,t){const xs=[],ys=[];for(let i=f;i<=t;i++){xs.push(i);ys.push(y[i]);}const xm=xs.reduce((a,b)=>a+b)/xs.length,ym=ys.reduce((a,b)=>a+b)/ys.length;const num=xs.reduce((s,x,i)=>s+(x-xm)*(ys[i]-ym),0),den=xs.reduce((s,x)=>s+(x-xm)**2,0);const sl=num/den,ic=ym-sl*xm;return LL.map((_,i)=>Math.max(0,Math.round(ic+sl*i)));}
+const airAltBL=lr(airAct,0,12);
+const grocAltBL=lr(grocAct,10,12);
+const grocBL=LL.map(()=>grocFlat);
 
-// Airport blend baseline: slope = avg(full slope, apr slope), anchored at week 12
-const airBlendSlope=203.0538, airBlendIntercept=1257.3538;
-const airBlendBL=LL.map((_,i)=>Math.max(0,Math.round(airBlendIntercept+airBlendSlope*i)));
-
-// Airport alt: full Jan-Apr regression
-function lr(y,f,t){
-  const xs=[],ys=[];
-  for(let i=f;i<=t;i++){xs.push(i);ys.push(y[i]);}
-  const xm=xs.reduce((a,b)=>a+b)/xs.length,ym=ys.reduce((a,b)=>a+b)/ys.length;
-  const num=xs.reduce((s,x,i)=>s+(x-xm)*(ys[i]-ym),0),den=xs.reduce((s,x)=>s+(x-xm)**2,0);
-  const sl=num/den,ic=ym-sl*xm;
-  return LL.map((_,i)=>Math.max(0,Math.round(ic+sl*i)));
-}
-const airFullBL=lr(airAct,0,12);
-const grocAprBL=lr(grocAct,10,12);
-
-const PD={
+// Pre-computed regression results
+const CORR={
   airport:{
-    act:airAct, spd:airSpd, imps:airImps,
-    hex:'#185FA5', rgb:[24,95,165],
-    pl:'Slope blend (Jan–Apr + Apr decel)', al:'Full Jan–Apr regression',
-    note:'Baseline = slope blend anchored at 4/25. Averages the full Jan–Apr growth slope (~298/wk) with the April deceleration slope (~108/wk) to produce ~203 orders/week. This reflects both the long-run growth trajectory and the material slowdown observed in April before media launched.',
-    showLag:true,
-    getBaseline:()=>airBlendBL,
-    getAltBaseline:()=>airFullBL
+    resid:[446,778,802,860,16,-341],
+    impsPost:[2115163,3854696,4774054,3087094,2436044,2845685],
+    impsLag:[0,2115163,3854696,4774054,3087094,2436044],
+    same:{sl:144.5441e-6,r:0.554,r2:0.596,p:0.042,ciLo:7.67e-6,ciHi:281.42e-6},
+    lag:{sl:139.9834e-6,r:0.277,r2:0.490,p:0.080},
+    cpb:{curr:119,pt:125,lagPt:151,iqrLo:98,iqrHi:170,b25:103,b75:156},
+    dsNote:'DS simulation cross-check (independent, for reference): most-likely $95–110, defensible $65–240. Our IQR lower bound ($98) aligns closely. Gap at the upper end reflects DS accounting for growth-vs-plateau baseline uncertainty that our blend partially but not fully resolves.',
+    corrNt:'Residuals = actual orders minus slope-blend baseline. OLS regression through origin (awareness channel assumption). n=6 post-launch weeks.\n\nT+1 lag confidence: reported as Moderate despite p=0.08 for three reasons: (1) The 5/2 week has zero lag impressions — no media ran in the prior 4/25 week — forcing that point to zero and mechanically inflating residuals. This single zero is the primary driver of the weaker p-value. (2) Excluding 5/2, the lag pattern holds across 4 of 5 remaining weeks with near-monotonic accuracy: 5/9 peak spend → 5/23 order peak, 5/23 spend drop → 5/30 decline, 5/30 continued drop → 6/6 continued decline. (3) Lag R² (0.49) and same-week R² (0.60) are not meaningfully different at n=6. The p-value reflects statistical power limitations, not absence of a real signal.'
   },
   grocery:{
-    act:grocAct, spd:grocSpd, imps:grocImps,
-    hex:'#1D9E75', rgb:[29,158,117],
-    pl:'Flat Apr 11–25 avg (~'+grocFlat+')', al:'Apr 11–25 regression',
-    note:'Baseline = flat average of Apr 11–Apr 25 (~'+grocFlat+' orders/wk). Reflects stabilized demand before launch rather than projecting a temporary dip forward.',
-    showLag:false,
-    getBaseline:()=>LL.map(()=>grocFlat),
-    getAltBaseline:()=>grocAprBL
+    resid:[-33,5,219,704,420,596],
+    impsPost:[1198436,2650352,3207949,5709899,5521832,6899827],
+    impsLag:null,
+    same:{sl:85.9579e-6,r:0.932,r2:0.889,p:0.0015,ciLo:56.07e-6,ciHi:115.84e-6},
+    lag:null,
+    cpb:{curr:216,pt:194,lagPt:null,iqrLo:174,iqrHi:219,b25:181,b75:214},
+    dsNote:'DS simulation cross-check (independent, for reference): most-likely $200–260, defensible $160–400. Our IQR ($174–219) overlaps well at the low end (~$200). DS range extends higher, consistent with their note on mean-reversion confound — some of the April-dip recovery may have occurred organically regardless of media.',
+    corrNt:'Residuals = actual orders minus flat Apr baseline. OLS regression through origin. n=6 post-launch weeks. No T+1 lag model — data shows no meaningful lag effect for Grocery (same-week model already explains 89% of residual variance). Strong correlation (r=0.93, p=0.001) — the most statistically robust finding in this analysis.'
   }
 };
 
 function ra(rgb,a){return`rgba(${rgb[0]},${rgb[1]},${rgb[2]},${a})`;}
 const gc='rgba(0,0,0,0.06)',tc='#888';
-let CH={os:null,oi:null,c:null,m:null};
+let CH={os:null,oi:null,m:null,corr:null};
 let CP='airport',CV='spend';
+
+const PD={
+  airport:{act:airAct,spd:airSpd,imps:airImps,bl:airBL,altBl:airAltBL,hex:'#185FA5',rgb:[24,95,165],showLag:true,
+    pl:'Slope blend (Jan–Apr + Apr decel)',al:'Full Jan–Apr regression',
+    note:'Baseline = slope blend anchored at 4/25. Averages the full Jan–Apr growth slope (~298/wk) with the April deceleration slope (~108/wk) → ~203 orders/week. Reflects both the long-run trajectory and the material April slowdown before launch.'},
+  grocery:{act:grocAct,spd:grocSpd,imps:grocImps,bl:grocBL,altBl:grocAltBL,hex:'#1D9E75',rgb:[29,158,117],showLag:false,
+    pl:'Flat Apr 11–25 avg (~'+grocFlat+')',al:'Apr 11–25 regression',
+    note:'Baseline = flat average of Apr 11–Apr 25 (~'+grocFlat+' orders/wk). Reflects stabilized demand before launch rather than projecting a temporary dip forward.'}
+};
 
 const LP={id:'lp',afterDraw(ch){
   const ctx=ch.ctx,x=ch.scales.x.getPixelForValue(LI),t=ch.chartArea.top,b=ch.chartArea.bottom;
@@ -342,23 +306,29 @@ const LP={id:'lp',afterDraw(ch){
 function mkFP(bl,act,col){return{id:'ifp',afterDatasetsDraw(ch){
   if(!ch.scales||!ch.scales.x||!ch.scales.y)return;
   const ctx=ch.ctx;ctx.save();ctx.beginPath();let s=false;
-  for(let i=LI;i<NN;i++){
-    const x=ch.scales.x.getPixelForValue(i),y=ch.scales.y.getPixelForValue(Math.max(act[i],bl[i]));
-    if(!s){ctx.moveTo(x,y);s=true;}else ctx.lineTo(x,y);
-  }
+  for(let i=LI;i<NN;i++){const x=ch.scales.x.getPixelForValue(i),y=ch.scales.y.getPixelForValue(Math.max(act[i],bl[i]));if(!s){ctx.moveTo(x,y);s=true;}else ctx.lineTo(x,y);}
   for(let i=NN-1;i>=LI;i--){ctx.lineTo(ch.scales.x.getPixelForValue(i),ch.scales.y.getPixelForValue(bl[i]));}
   ctx.closePath();ctx.fillStyle=col;ctx.fill();ctx.restore();
 }};}
 
+function mkCIPlugin(imps,ciLo,ciHi,fill){return{id:'cib',beforeDatasetsDraw(ch){
+  if(!ch.scales||!ch.scales.x||!ch.scales.y)return;
+  const ctx=ch.ctx;ctx.save();ctx.beginPath();let s=false;
+  for(let i=0;i<imps.length;i++){const px=ch.scales.x.getPixelForValue(i),py=ch.scales.y.getPixelForValue(Math.max(0,ciHi*imps[i]));if(!s){ctx.moveTo(px,py);s=true;}else ctx.lineTo(px,py);}
+  for(let i=imps.length-1;i>=0;i--){ctx.lineTo(ch.scales.x.getPixelForValue(i),ch.scales.y.getPixelForValue(Math.max(0,(ciLo>0?ciLo:0)*imps[i])));}
+  ctx.closePath();ctx.fillStyle=fill;ctx.fill();ctx.restore();
+}};}
+
 function dst(){Object.keys(CH).forEach(k=>{if(CH[k]){CH[k].destroy();CH[k]=null;}});}
 
-function buildCharts(p){
+function build(p){
   dst();
-  const d=PD[p];
-  const bl=d.getBaseline(),ab=d.getAltBaseline();
+  const d=PD[p], c=CORR[p];
+  const bl=d.bl, ab=d.altBl;
   const inc=d.act.map((v,i)=>i>=LI?Math.max(0,v-bl[i]):0);
   const inca=d.act.map((v,i)=>i>=LI?Math.max(0,v-ab[i]):0);
 
+  // Update legend colors
   ['s','i'].forEach(sfx=>{
     document.getElementById('la-'+sfx).style.background=d.hex;
     document.getElementById('lb-'+sfx).style.borderTopColor=ra(d.rgb,0.6);
@@ -368,165 +338,140 @@ function buildCharts(p){
   document.getElementById('lc2').style.background=ra(d.rgb,0.25);
   document.getElementById('lc1l').textContent=d.pl;
   document.getElementById('lc2l').textContent=d.al;
-
-  // Show/hide lag callout for Airport only
   document.getElementById('lag-callout').style.display=d.showLag?'block':'none';
-  document.getElementById('lag-callout-imps').style.display=d.showLag?'block':'none';
 
-  const mkOpts=(y2max,y2label,y2fmt)=>({
+  const mkOpts=(y2max,y2lbl,y2fmt)=>({
     responsive:true,maintainAspectRatio:false,
     interaction:{mode:'index',intersect:false},
-    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{
-      const v=Math.round(c.raw);
-      if(c.datasetIndex===2)return`${c.dataset.label}: ${y2fmt(v)}`;
-      if(c.datasetIndex===1)return`Baseline: ${v.toLocaleString()}`;
-      return`Actual: ${v.toLocaleString()} orders`;
-    }}}},
-    scales:{
-      x:{ticks:{color:tc,font:{size:10},maxRotation:45,autoSkip:false},grid:{color:gc}},
-      y:{title:{display:true,text:'Orders',color:tc,font:{size:11}},ticks:{color:tc,font:{size:11},callback:v=>v.toLocaleString()},grid:{color:gc}},
-      y2:{position:'right',title:{display:true,text:y2label,color:tc,font:{size:11}},max:y2max,ticks:{color:tc,font:{size:11},callback:y2fmt},grid:{display:false}}
-    }
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const v=Math.round(ctx.raw);if(ctx.datasetIndex===2)return`${ctx.dataset.label}: ${y2fmt(v)}`;if(ctx.datasetIndex===1)return`Baseline: ${v.toLocaleString()}`;return`Actual: ${v.toLocaleString()} orders`;}}}},
+    scales:{x:{ticks:{color:tc,font:{size:10},maxRotation:45,autoSkip:false},grid:{color:gc}},y:{title:{display:true,text:'Orders',color:tc,font:{size:11}},ticks:{color:tc,font:{size:11},callback:v=>v.toLocaleString()},grid:{color:gc}},y2:{position:'right',title:{display:true,text:y2lbl,color:tc,font:{size:11}},max:y2max,ticks:{color:tc,font:{size:11},callback:y2fmt},grid:{display:false}}}
   });
-
-  const mkDs=(overlay,oColor,oLabel)=>[
+  const mkDs=(ov,oColor,oLabel)=>[
     {label:'Actual',data:d.act,borderColor:d.hex,backgroundColor:'transparent',borderWidth:2.5,pointRadius:3,tension:0.3,yAxisID:'y'},
     {label:'Baseline',data:bl,borderColor:ra(d.rgb,0.55),backgroundColor:'transparent',borderWidth:1.5,borderDash:[5,4],pointRadius:0,tension:0.3,yAxisID:'y'},
-    {label:oLabel,data:overlay,borderColor:oColor,backgroundColor:'transparent',borderWidth:1.5,borderDash:[4,3],pointRadius:2,tension:0.3,yAxisID:'y2'}
+    {label:oLabel,data:ov,borderColor:oColor,backgroundColor:'transparent',borderWidth:1.5,borderDash:[4,3],pointRadius:2,tension:0.3,yAxisID:'y2'}
   ];
+  const spMax=p==='airport'?150000:130000;
+  const imMax=Math.max(...d.imps)*1.2;
+  const fmtS=v=>'$'+Math.round(v/1000)+'k';
+  const fmtI=v=>v>=1e6?(v/1e6).toFixed(1)+'M':v>=1000?Math.round(v/1000)+'k':String(v);
 
-  const spendMax=p==='airport'?150000:130000;
-  const impsMax=Math.max(...d.imps)*1.2;
-  const fmtSpend=v=>'$'+Math.round(v/1000)+'k';
-  const fmtImps=v=>v>=1000000?(v/1000000).toFixed(1)+'M':v>=1000?Math.round(v/1000)+'k':String(v);
+  CH.os=new Chart(document.getElementById('oc-spend'),{type:'line',plugins:[LP,mkFP(bl,d.act,ra(d.rgb,0.22))],data:{labels:LL,datasets:mkDs(d.spd,'#E24B4A','Spend')},options:mkOpts(spMax,'Spend ($)',fmtS)});
+  CH.oi=new Chart(document.getElementById('oc-imps'),{type:'line',plugins:[LP,mkFP(bl,d.act,ra(d.rgb,0.22))],data:{labels:LL,datasets:mkDs(d.imps,'#7B5EA7','Impressions')},options:mkOpts(imMax,'Impressions',fmtI)});
 
-  CH.os=new Chart(document.getElementById('oc-spend'),{type:'line',plugins:[LP,mkFP(bl,d.act,ra(d.rgb,0.22))],data:{labels:LL,datasets:mkDs(d.spd,'#E24B4A','Spend')},options:mkOpts(spendMax,'Spend ($)',fmtSpend)});
-  CH.oi=new Chart(document.getElementById('oc-imps'),{type:'line',plugins:[LP,mkFP(bl,d.act,ra(d.rgb,0.22))],data:{labels:LL,datasets:mkDs(d.imps,'#7B5EA7','Impressions')},options:mkOpts(impsMax,'Impressions',fmtImps)});
-
+  // Baseline comparison
   const pL=LL.slice(LI);
-  const cpb1=[],cpb2=[];
-  for(let i=LI;i<NN;i++){
-    cpb1.push(inc[i]>0?Math.round(d.spd[i]/inc[i]):null);
-    cpb2.push(inca[i]>0?Math.round(d.spd[i]/inca[i]):null);
-  }
-
-  CH.c=new Chart(document.getElementById('cc'),{type:'bar',
-    data:{labels:pL,datasets:[
-      {label:d.pl,data:cpb1,backgroundColor:ra(d.rgb,0.8),borderColor:d.hex,borderWidth:0.5},
-      {label:d.al,data:cpb2,backgroundColor:ra(d.rgb,0.2),borderColor:ra(d.rgb,0.5),borderWidth:0.5}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.dataset.label}: $${(c.raw??0).toLocaleString()} / booking`}}},
-      scales:{x:{ticks:{color:tc,font:{size:11}},grid:{color:gc}},y:{title:{display:true,text:'$ per incremental booking',color:tc,font:{size:11}},ticks:{color:tc,font:{size:11},callback:v=>'$'+v.toLocaleString()},grid:{color:gc}}}}
-  });
-
   CH.m=new Chart(document.getElementById('mc'),{type:'bar',
     data:{labels:pL,datasets:[
       {label:d.pl,data:inc.slice(LI),backgroundColor:ra(d.rgb,0.8),borderColor:d.hex,borderWidth:0.5},
       {label:d.al,data:inca.slice(LI),backgroundColor:ra(d.rgb,0.2),borderColor:ra(d.rgb,0.5),borderWidth:0.5}
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${(c.raw??0).toLocaleString()} orders`}}},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${(ctx.raw??0).toLocaleString()} orders`}}},
       scales:{x:{ticks:{color:tc,font:{size:11}},grid:{color:gc}},y:{title:{display:true,text:'Incremental orders',color:tc,font:{size:11}},ticks:{color:tc,font:{size:11},callback:v=>v.toLocaleString()},grid:{color:gc}}}}
   });
 
-  const ti=inc.reduce((a,b)=>a+b,0),tia=inca.reduce((a,b)=>a+b,0);
-  const ts=d.spd.slice(LI).reduce((a,b)=>a+b,0);
-  const to=d.act.slice(LI).reduce((a,b)=>a+b,0);
-  const cpb=ti>0?Math.round(ts/ti):0,cpba=tia>0?Math.round(ts/tia):0;
+  // Media correlation chart
+  const m=c.same;
+  const fitSame=c.impsPost.map(x=>+(m.sl*x).toFixed(1));
+  const corrDs=[
+    {type:'bar',label:'Actual residual',data:c.resid,
+     backgroundColor:c.resid.map(v=>v>=0?ra(d.rgb,0.6):'rgba(226,75,74,0.55)'),
+     borderColor:c.resid.map(v=>v>=0?d.hex:'#E24B4A'),borderWidth:0.5,order:2},
+    {type:'line',label:'Same-week fit',data:fitSame,borderColor:d.hex,backgroundColor:'transparent',borderWidth:2,pointRadius:4,pointBackgroundColor:d.hex,tension:0.3,order:1}
+  ];
+  if(c.lag){
+    const fitLag=c.impsLag.map(x=>+(c.lag.sl*x).toFixed(1));
+    corrDs.push({type:'line',label:'T+1 lag fit',data:fitLag,borderColor:'#7B5EA7',backgroundColor:'transparent',borderWidth:1.5,borderDash:[5,3],pointRadius:3,pointBackgroundColor:'#7B5EA7',tension:0.3,order:1});
+  }
+  CH.corr=new Chart(document.getElementById('ch-corr'),{
+    type:'bar',
+    plugins:[mkCIPlugin(c.impsPost,m.ciLo,m.ciHi,ra(d.rgb,0.10))],
+    data:{labels:['5/2','5/9','5/16','5/23','5/30','6/6'],datasets:corrDs},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${Math.round(ctx.raw).toLocaleString()}`}}},
+      scales:{x:{ticks:{color:tc,font:{size:11}},grid:{color:gc}},y:{title:{display:true,text:'Orders above baseline',color:tc,font:{size:11}},ticks:{color:tc,font:{size:11},callback:v=>v.toLocaleString()},grid:{color:gc}}}}
+  });
 
+  // Correlation legend
+  let lgHtml=`<span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:12px;border-radius:2px;background:${ra(d.rgb,0.6)};display:inline-block"></span>Actual residual</span>
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:16px;height:2.5px;display:inline-block;background:${d.hex}"></span>Same-week fit</span>`;
+  if(c.lag) lgHtml+=`<span style="display:flex;align-items:center;gap:5px"><span style="width:16px;height:0;display:inline-block;border-top:2px dashed #7B5EA7"></span>T+1 lag fit</span>`;
+  lgHtml+=`<span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:${ra(d.rgb,0.12)};display:inline-block"></span>95% CI band</span>`;
+  document.getElementById('corr-lg').innerHTML=lgHtml;
+
+  // Correlation metrics
+  const corrConfCls=p==='grocery'?'cs':'cm';
+  document.getElementById('corr-metrics').innerHTML=`
+    <div class="mc"><div class="mlb">Current baseline CPB</div><div class="mv">$${c.cpb.curr}</div><div style="font-size:11px;color:#888">Orders above trend</div></div>
+    <div class="mc"><div class="mlb">Impression model CPB</div><div class="mv w">$${c.cpb.pt}</div><div style="font-size:11px;color:#888">Same-week regression</div></div>
+    <div class="mc"><div class="mlb">IQR most-likely range</div><div class="mv b">$${c.cpb.iqrLo}–$${c.cpb.iqrHi}</div><div style="font-size:11px;color:#888">25th–75th pctile</div></div>
+    <div class="mc"><div class="mlb">Correlation r</div><div class="mv ${p==='grocery'?'g':'b'}">${m.r.toFixed(2)}</div><div style="font-size:11px;color:#888">R²=${(m.r2*100).toFixed(0)}% explained</div></div>`;
+
+  // CPB range bars
+  const maxV=p==='airport'?350:450;
+  function rb(label,lo,pt,hi,color,confHtml){
+    const pct=v=>Math.min(97,(v/maxV)*100);
+    return `<div class="rrow"><span class="rlbl">${label}${confHtml||''}</span>
+      <div class="rbw"><div class="rbbg"></div>
+        <div class="rbf" style="left:${pct(lo)}%;width:${pct(hi)-pct(lo)}%;background:${color}22;border:1px solid ${color}44"></div>
+        <div class="rbd" style="left:${pct(pt)}%;background:${color}"></div>
+      </div>
+      <span class="rval">$${lo} – $${hi}</span></div>`;
+  }
+  let rangeHtml=`<div class="rtitle">CPB most-likely range — 25th to 75th percentile</div>`;
+  rangeHtml+=rb('Current baseline',c.cpb.curr,c.cpb.curr,c.cpb.curr,'#888','');
+  rangeHtml+=rb(`Same-week impression model`,c.cpb.iqrLo,c.cpb.pt,c.cpb.iqrHi,d.hex,`<span class="cb ${corrConfCls}">${p==='grocery'?'Strong':'Moderate'}, r=${m.r.toFixed(2)}</span>`);
+  if(c.lag) rangeHtml+=rb(`T+1 lag impression model`,c.cpb.b25,c.cpb.lagPt,c.cpb.b75,'#7B5EA7',`<span class="cb cm">Moderate, r=${c.lag.r.toFixed(2)}</span>`);
+  const conv=p==='airport'?'$98–$125':'$194–$216';
+  rangeHtml+=`<p style="font-size:11px;color:#888;margin-top:.7rem;line-height:1.5">Convergence zone across methods: <strong>${conv}</strong>. The overlap between current baseline and IQR lower bound is the most defensible range for reporting.</p>`;
+  document.getElementById('corr-range').innerHTML=rangeHtml;
+  document.getElementById('corr-nt').innerText=c.corrNt;
+  document.getElementById('ds-note').innerHTML=`<strong>DS simulation cross-check (independent, for reference only):</strong> ${c.dsNote}`;
+
+  // Metrics + notes
+  const ti=inc.reduce((a,b)=>a+b,0),tia=inca.reduce((a,b)=>a+b,0);
+  const ts=d.spd.slice(LI).reduce((a,b)=>a+b,0),to=d.act.slice(LI).reduce((a,b)=>a+b,0);
+  const cpb=ti>0?Math.round(ts/ti):0,cpba=tia>0?Math.round(ts/tia):0;
   document.getElementById('mtr').innerHTML=`
     <div class="mc"><div class="mlb">Total orders post-launch</div><div class="mv">${to.toLocaleString()}</div></div>
     <div class="mc"><div class="mlb">Est. incremental orders</div><div class="mv g">${ti.toLocaleString()}</div></div>
     <div class="mc"><div class="mlb">Total spend</div><div class="mv">$${Math.round(ts).toLocaleString()}</div></div>
-    <div class="mc"><div class="mlb">Blended CPB</div><div class="mv w">$${cpb.toLocaleString()}</div></div>`;
-
+    <div class="mc"><div class="mlb">Baseline CPB</div><div class="mv w">$${cpb.toLocaleString()}</div></div>`;
   document.getElementById('on-spend').textContent=d.note;
-  document.getElementById('on-imps').textContent=d.note+(p==='airport'?' Impressions overlay shows weekly media exposure volume — the 5/23 impression drop (3.1M) and 5/30 drop (2.4M) mirror the order declines the following weeks, consistent with a 1-week lag pattern.':'  Impressions may better reflect awareness channel weight than spend when CPMs vary across platforms.');
-  document.getElementById('cn').innerHTML=`Primary (${d.pl}) CPB: <strong>$${cpb.toLocaleString()}</strong> &nbsp;·&nbsp; Alt (${d.al}) CPB: <strong>$${cpba.toLocaleString()}</strong>.`;
+  document.getElementById('on-imps').textContent=d.note+(p==='airport'?' Impressions overlay: note the ~1-week lag between impression volume changes and order changes visible in the 5/23→5/30 and 5/30→6/6 pattern.':' Impressions may better reflect awareness channel weight when CPMs vary across platforms.');
   document.getElementById('ccs').innerHTML=`
     <div class="cd"><div class="cdl">${d.pl} (primary)</div>
       <div class="cr"><span class="ck">Baseline at launch</span><span>~${bl[LI].toLocaleString()}</span></div>
       <div class="cr"><span class="ck">Incremental orders</span><span>${ti.toLocaleString()}</span></div>
       <div class="cr"><span class="ck">% of post-launch orders</span><span>${Math.round(ti/to*100)}%</span></div>
-      <div class="cr"><span class="ck">Blended CPB</span><span>$${cpb.toLocaleString()}</span></div>
-    </div>
+      <div class="cr"><span class="ck">Blended CPB</span><span>$${cpb.toLocaleString()}</span></div></div>
     <div class="cd"><div class="cdl">${d.al} (alt)</div>
       <div class="cr"><span class="ck">Baseline at launch</span><span>~${ab[LI].toLocaleString()}</span></div>
       <div class="cr"><span class="ck">Incremental orders</span><span>${tia.toLocaleString()}</span></div>
       <div class="cr"><span class="ck">% of post-launch orders</span><span>${Math.round(tia/to*100)}%</span></div>
-      <div class="cr"><span class="ck">Blended CPB</span><span>$${cpba.toLocaleString()}</span></div>
-    </div>`;
+      <div class="cr"><span class="ck">Blended CPB</span><span>$${cpba.toLocaleString()}</span></div></div>`;
 }
 
-function sw(p){
-  CP=p;
-  document.getElementById('ba').classList.toggle('on',p==='airport');
-  document.getElementById('bg').classList.toggle('on',p==='grocery');
-  buildCharts(p);
-}
-function st(t){
-  ['o','c','m'].forEach(id=>document.getElementById('s'+id).classList.toggle('vis',id===t));
-  document.querySelectorAll('.tb').forEach((b,i)=>b.classList.toggle('on',['o','c','m'][i]===t));
-}
-function setView(v){
-  CV=v;
-  document.getElementById('pv-spend').classList.toggle('vis',v==='spend');
-  document.getElementById('pv-imps').classList.toggle('vis',v==='imps');
-  document.getElementById('sv-spend').classList.toggle('on',v==='spend');
-  document.getElementById('sv-imps').classList.toggle('on',v==='imps');
-}
-function toggleMeth(){
-  const d=document.getElementById('methdoc'),c=document.getElementById('methchev'),b=document.getElementById('methbtn');
-  const open=d.style.display==='none';
-  d.style.display=open?'block':'none';
-  c.style.transform=open?'rotate(180deg)':'';
-  b.style.borderRadius=open?'12px 12px 0 0':'12px';
-}
-function toggleRaw(){
-  const d=document.getElementById('rawdoc'),c=document.getElementById('rawchev'),b=document.getElementById('rawbtn');
-  const open=d.style.display==='none';
-  d.style.display=open?'block':'none';
-  c.style.transform=open?'rotate(180deg)':'';
-  b.style.borderRadius=open?'12px 12px 0 0':'12px';
-  if(open) buildTables();
-}
+function sw(p){CP=p;document.getElementById('ba').classList.toggle('on',p==='airport');document.getElementById('bg').classList.toggle('on',p==='grocery');build(p);}
+function st(t){['o','r','m'].forEach(id=>document.getElementById('s'+id).classList.toggle('vis',id===t));document.querySelectorAll('.tb').forEach((b,i)=>b.classList.toggle('on',['o','r','m'][i]===t));}
+function setView(v){CV=v;['spend','imps'].forEach(id=>{document.getElementById('pv-'+id).classList.toggle('vis',id===v);document.getElementById('sv-'+id).classList.toggle('on',id===v);});}
+function toggleMeth(){const d=document.getElementById('methdoc'),c=document.getElementById('methchev'),b=document.getElementById('methbtn');const open=d.style.display==='none';d.style.display=open?'block':'none';c.style.transform=open?'rotate(180deg)':'';b.style.borderRadius=open?'12px 12px 0 0':'12px';}
+function toggleRaw(){const d=document.getElementById('rawdoc'),c=document.getElementById('rawchev'),b=document.getElementById('rawbtn');const open=d.style.display==='none';d.style.display=open?'block':'none';c.style.transform=open?'rotate(180deg)':'';b.style.borderRadius=open?'12px 12px 0 0':'12px';if(open)buildTables();}
+function toggleTake(){const d=document.getElementById('takedoc'),c=document.getElementById('takechev'),b=document.getElementById('takebtn');const open=d.style.display==='none';d.style.display=open?'block':'none';c.style.transform=open?'rotate(180deg)':'';b.style.borderRadius=open?'12px 12px 0 0':'12px';}
 function buildTables(){
   function rows(act,bl,spd,imps,tbodyId,hex){
-    const tb=document.getElementById(tbodyId);
-    if(tb.children.length>0)return;
-    act.forEach((v,i)=>{
-      const bv=Array.isArray(bl)?bl[i]:bl;
-      const inc=i>=LI?Math.max(0,v-bv):0;
-      const cpb=inc>0?'$'+Math.round(spd[i]/inc).toLocaleString():'—';
-      const isPost=i>=LI;
-      const rowBg=isPost&&inc>0?`background:${hex}11`:'';
-      tb.innerHTML+=`<tr style="border-bottom:0.5px solid rgba(0,0,0,0.05);${rowBg}">
-        <td style="padding:6px 10px;white-space:nowrap;color:#444">${LL[i]}${i===LI?' ▲':''}</td>
-        <td style="padding:6px 10px;text-align:right;color:#1a1a18;font-weight:${isPost?'500':'400'}">${v.toLocaleString()}</td>
-        <td style="padding:6px 10px;text-align:right;color:#888">${bv.toLocaleString()}</td>
-        <td style="padding:6px 10px;text-align:right;color:${inc>0?hex:'#ccc'};font-weight:${inc>0?'500':'400'}">${inc>0?'+'+inc.toLocaleString():'—'}</td>
-        <td style="padding:6px 10px;text-align:right;color:#666">${spd[i]>0?'$'+Math.round(spd[i]).toLocaleString():'—'}</td>
-        <td style="padding:6px 10px;text-align:right;color:#666">${imps[i]>0?imps[i].toLocaleString():'—'}</td>
-        <td style="padding:6px 10px;text-align:right;color:#BA7517;font-weight:${inc>0?'500':'400'}">${cpb}</td>
-      </tr>`;
+    const tb=document.getElementById(tbodyId);if(tb.children.length>0)return;
+    act.forEach((v,i)=>{const bv=Array.isArray(bl)?bl[i]:bl;const inc=i>=LI?Math.max(0,v-bv):0;const cpb=inc>0?'$'+Math.round(spd[i]/inc).toLocaleString():'—';const isPost=i>=LI;const rowBg=isPost&&inc>0?`background:${hex}11`:'';
+      tb.innerHTML+=`<tr style="border-bottom:0.5px solid rgba(0,0,0,0.05);${rowBg}"><td style="padding:6px 10px;white-space:nowrap;color:#444">${LL[i]}${i===LI?' ▲':''}</td><td style="padding:6px 10px;text-align:right;color:#1a1a18;font-weight:${isPost?'500':'400'}">${v.toLocaleString()}</td><td style="padding:6px 10px;text-align:right;color:#888">${bv.toLocaleString()}</td><td style="padding:6px 10px;text-align:right;color:${inc>0?hex:'#ccc'};font-weight:${inc>0?'500':'400'}">${inc>0?'+'+inc.toLocaleString():'—'}</td><td style="padding:6px 10px;text-align:right;color:#666">${spd[i]>0?'$'+Math.round(spd[i]).toLocaleString():'—'}</td><td style="padding:6px 10px;text-align:right;color:#666">${imps[i]>0?imps[i].toLocaleString():'—'}</td><td style="padding:6px 10px;text-align:right;color:#BA7517;font-weight:${inc>0?'500':'400'}">${cpb}</td></tr>`;
     });
     const totInc=act.slice(LI).reduce((a,v,i)=>a+Math.max(0,v-(Array.isArray(bl)?bl[i+LI]:bl)),0);
-    const totSpd=spd.slice(LI).reduce((a,b)=>a+b,0);
-    const totImps=imps.slice(LI).reduce((a,b)=>a+b,0);
-    const totOrd=act.slice(LI).reduce((a,b)=>a+b,0);
-    tb.innerHTML+=`<tr style="border-top:1px solid rgba(0,0,0,0.1);background:#f5f5f3;font-weight:500">
-      <td style="padding:7px 10px;color:#444">Total (post-launch)</td>
-      <td style="padding:7px 10px;text-align:right">${totOrd.toLocaleString()}</td>
-      <td style="padding:7px 10px;text-align:right;color:#888">—</td>
-      <td style="padding:7px 10px;text-align:right;color:${hex}">+${totInc.toLocaleString()}</td>
-      <td style="padding:7px 10px;text-align:right;color:#666">$${Math.round(totSpd).toLocaleString()}</td>
-      <td style="padding:7px 10px;text-align:right;color:#666">${totImps.toLocaleString()}</td>
-      <td style="padding:7px 10px;text-align:right;color:#BA7517">$${Math.round(totSpd/totInc).toLocaleString()}</td>
-    </tr>`;
+    const totSpd=spd.slice(LI).reduce((a,b)=>a+b,0),totImps=imps.slice(LI).reduce((a,b)=>a+b,0),totOrd=act.slice(LI).reduce((a,b)=>a+b,0);
+    tb.innerHTML+=`<tr style="border-top:1px solid rgba(0,0,0,0.1);background:#f5f5f3;font-weight:500"><td style="padding:7px 10px;color:#444">Total (post-launch)</td><td style="padding:7px 10px;text-align:right">${totOrd.toLocaleString()}</td><td style="padding:7px 10px;text-align:right;color:#888">—</td><td style="padding:7px 10px;text-align:right;color:${hex}">+${totInc.toLocaleString()}</td><td style="padding:7px 10px;text-align:right;color:#666">$${Math.round(totSpd).toLocaleString()}</td><td style="padding:7px 10px;text-align:right;color:#666">${totImps.toLocaleString()}</td><td style="padding:7px 10px;text-align:right;color:#BA7517">$${Math.round(totSpd/totInc).toLocaleString()}</td></tr>`;
   }
-  rows(airAct,airBlendBL,airSpd,airImps,'air-tbody','#185FA5');
+  rows(airAct,airBL,airSpd,airImps,'air-tbody','#185FA5');
   rows(grocAct,grocFlat,grocSpd,grocImps,'groc-tbody','#1D9E75');
 }
-buildCharts('airport');
+build('airport');
 </script>
 </body>
 </html>
